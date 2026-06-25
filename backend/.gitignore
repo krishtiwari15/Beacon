@@ -1,0 +1,15 @@
+# Python virtual environment — recreatable, never commit
+venv/
+
+# Python cache files — auto-generated junk
+__pycache__/
+*.pyc
+
+# Database file — local data, not source code
+radar.db
+
+# Secret files (we'll use this later for passwords/keys)
+.env
+
+# VS Code settings
+.vscode/
