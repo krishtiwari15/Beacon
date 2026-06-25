@@ -41,6 +41,13 @@ class Opportunity(Base):
     deadline = Column(Date, index=True)      # a real date, so we can sort/filter by it
     source_url = Column(String)
     tags = Column(String)                    # comma-separated, e.g. "ai,python"
+
+    # --- NEW: richer fields to power stipend, difficulty, work-mode, and logo features ---
+    stipend = Column(String)                 # e.g. "₹20,000/month", "$1000/month", "Unpaid"
+    difficulty = Column(String, index=True)  # "Beginner" / "Intermediate" / "Advanced"
+    work_mode = Column(String, index=True)   # "Remote" / "Hybrid" / "On-site"
+    logo_url = Column(String)                # link to a company logo (frontend supplies a fallback)
+
     created_at = Column(DateTime, default=datetime.utcnow)
 
     saved_by = relationship("SavedOpportunity", back_populates="opportunity")
