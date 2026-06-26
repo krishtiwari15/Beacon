@@ -1,11 +1,13 @@
-# frontend/app.py — Beacon · Phase 3 (Discover + Tracker + AI Eligibility)
+# frontend/app.py — Beacon · Phase 3 (Discover + Tracker + AI Eligibility + Resume Analyzer)
 
 import streamlit as st
 import requests
 import random
 import html
+from io import BytesIO
 from urllib.parse import urlparse
 from datetime import date, datetime
+from pypdf import PdfReader
 
 API_URL = "http://127.0.0.1:8000"
 st.set_page_config(page_title="Beacon", page_icon="🛰️", layout="wide")
@@ -43,6 +45,8 @@ st.markdown("""
 .stat { background:#141414; border:1px solid #262626; border-top:3px solid #f5c518; border-radius:4px; padding:1.1rem 1.2rem; text-align:center; }
 .stat-num { font-family:'Orbitron',sans-serif; font-size:2rem; font-weight:900; color:#f5c518; }
 .stat-label { font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:#999; letter-spacing:1px; text-transform:uppercase; margin-top:0.3rem; }
+/* Big score circle for the resume analyzer */
+.score-circle { display:inline-flex; align-items:center; justify-content:center; width:90px; height:90px; border-radius:50%; font-family:'Orbitron',sans-serif; font-size:1.8rem; font-weight:900; border:3px solid; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -92,6 +96,15 @@ def deadline_html(s):
     return f'<span class="{cls}">⏳ {label}</span>'
 
 
+def extract_pdf_text(uploaded_file):
+    """Read a Streamlit-uploaded PDF and return its text. Returns '' on failure."""
+    try:
+        reader = PdfReader(BytesIO(uploaded_file.getvalue()))
+        return "\n".join((page.extract_text() or "") for page in reader.pages)
+    except Exception:
+        return ""
+
+
 # ---- API helpers ----
 def fetch_opportunities():
     try:
@@ -126,10 +139,19 @@ def unsave_opportunity(opp_id):
 
 
 def check_eligibility(opp_id, profile):
-    """Call the backend AI endpoint and return the verdict dict."""
     try:
         payload = {"opportunity_id": opp_id, **profile}
         r = requests.post(f"{API_URL}/check-eligibility", json=payload, timeout=30)
+        r.raise_for_status()
+        return r.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Could not reach AI: {e}"}
+
+
+def analyze_resume(opp_id, resume_text):
+    try:
+        payload = {"opportunity_id": opp_id, "resume_text": resume_text}
+        r = requests.post(f"{API_URL}/analyze-resume", json=payload, timeout=45)
         r.raise_for_status()
         return r.json()
     except requests.exceptions.RequestException as e:
@@ -178,7 +200,9 @@ if opportunities is None:
 saved_list = fetch_saved()
 saved_ids = {s["id"]: s.get("status", "saved") for s in saved_list}
 
-tab_discover, tab_tracker, tab_ai = st.tabs(["🔍 DISCOVER", "📋 MY APPLICATIONS", "🤖 AI ELIGIBILITY"])
+tab_discover, tab_tracker, tab_ai, tab_resume = st.tabs(
+    ["🔍 DISCOVER", "📋 MY APPLICATIONS", "🤖 AI ELIGIBILITY", "📄 RESUME ANALYZER"]
+)
 
 # =====================================================================
 # TAB 1 — DISCOVER
@@ -330,3 +354,61 @@ with tab_ai:
                 st.markdown('<div class="section-head" style="font-size:0.9rem;">SUGGESTIONS</div>', unsafe_allow_html=True)
                 for sug in suggestions:
                     st.markdown(f'<div class="card-meta">💡 {html.escape(str(sug))}</div>', unsafe_allow_html=True)
+
+# =====================================================================
+# TAB 4 — RESUME ANALYZER
+# =====================================================================
+with tab_resume:
+    st.markdown('<div class="section-head">📄 AI RESUME ANALYZER</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-meta" style="margin-bottom:1rem;">Upload your resume (PDF), pick an opportunity, and get an AI match score with strengths and gaps.</div>', unsafe_allow_html=True)
+
+    uploaded = st.file_uploader("Upload your resume (PDF)", type=["pdf"])
+
+    opp_map_r = {f'{o["title"]} — {o.get("organization", "")}': o["id"] for o in opportunities}
+    chosen_r = st.selectbox("Opportunity to match against", options=list(opp_map_r.keys()), key="resume_opp")
+
+    if st.button("📄 Analyze My Resume"):
+        if not uploaded:
+            st.warning("Please upload a PDF resume first.")
+        else:
+            with st.spinner("Reading your resume and asking the AI..."):
+                resume_text = extract_pdf_text(uploaded)
+                result = analyze_resume(opp_map_r[chosen_r], resume_text)
+
+            if "error" in result:
+                st.error(f"⚠️ {result['error']}")
+            else:
+                score = result.get("score", 0)
+                try:
+                    score_int = int(score)
+                except (ValueError, TypeError):
+                    score_int = 0
+                # Color the score: red < 4, amber 4-6, green 7+.
+                scolor = "#ff4d4d" if score_int < 4 else ("#f5c518" if score_int < 7 else "#34c98a")
+
+                colL, colR = st.columns([1, 3])
+                with colL:
+                    st.markdown(
+                        f'<div class="score-circle" style="border-color:{scolor};color:{scolor};">{score_int}/10</div>',
+                        unsafe_allow_html=True
+                    )
+                with colR:
+                    st.markdown(f'<div class="card-meta" style="font-size:1.1rem;">{html.escape(str(result.get("summary", "")))}</div>', unsafe_allow_html=True)
+
+                strengths = result.get("strengths", [])
+                if strengths:
+                    st.markdown('<div class="section-head" style="font-size:0.9rem;">✅ STRENGTHS</div>', unsafe_allow_html=True)
+                    for s in strengths:
+                        st.markdown(f'<div class="card-meta">• {html.escape(str(s))}</div>', unsafe_allow_html=True)
+
+                gaps = result.get("gaps", [])
+                if gaps:
+                    st.markdown('<div class="section-head" style="font-size:0.9rem;">⚠️ GAPS</div>', unsafe_allow_html=True)
+                    for g in gaps:
+                        st.markdown(f'<div class="card-meta">• {html.escape(str(g))}</div>', unsafe_allow_html=True)
+
+                suggestions = result.get("suggestions", [])
+                if suggestions:
+                    st.markdown('<div class="section-head" style="font-size:0.9rem;">💡 SUGGESTIONS</div>', unsafe_allow_html=True)
+                    for sug in suggestions:
+                        st.markdown(f'<div class="card-meta">💡 {html.escape(str(sug))}</div>', unsafe_allow_html=True)

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from backend.database import engine, get_db, Base
 from backend.models import Opportunity, SavedOpportunity
-from backend.ai import check_eligibility
+from backend.ai import check_eligibility, analyze_resume
 
 Base.metadata.create_all(bind=engine)
 
@@ -19,7 +19,6 @@ class SaveRequest(BaseModel):
     status: str = "saved"
 
 
-# Pydantic model for the eligibility-check request body.
 class EligibilityRequest(BaseModel):
     opportunity_id: int
     age: str = ""
@@ -27,6 +26,11 @@ class EligibilityRequest(BaseModel):
     country: str = ""
     cgpa: str = ""
     skills: str = ""
+
+
+class ResumeRequest(BaseModel):
+    opportunity_id: int
+    resume_text: str
 
 
 @app.get("/")
@@ -107,15 +111,11 @@ def unsave_opportunity(opportunity_id: int, db: Session = Depends(get_db)):
     return {"message": "Removed", "opportunity_id": opportunity_id}
 
 
-# POST /check-eligibility — uses Gemini AI to assess if a student is eligible.
 @app.post("/check-eligibility")
 def eligibility(req: EligibilityRequest, db: Session = Depends(get_db)):
-    # Look up the opportunity so we can give the AI its real requirements.
     opp = db.query(Opportunity).filter(Opportunity.id == req.opportunity_id).first()
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
-
-    # Build the two dicts our AI function expects.
     profile = {
         "age": req.age, "education": req.education, "country": req.country,
         "cgpa": req.cgpa, "skills": req.skills,
@@ -124,7 +124,16 @@ def eligibility(req: EligibilityRequest, db: Session = Depends(get_db)):
         "title": opp.title, "organization": opp.organization, "type": opp.type,
         "eligibility": opp.eligibility, "location": opp.location,
     }
+    return check_eligibility(profile, opportunity)
 
-    # Call the AI. Returns a dict with verdict/reasons/suggestions (or an error).
-    result = check_eligibility(profile, opportunity)
-    return result
+
+@app.post("/analyze-resume")
+def analyze(req: ResumeRequest, db: Session = Depends(get_db)):
+    opp = db.query(Opportunity).filter(Opportunity.id == req.opportunity_id).first()
+    if not opp:
+        raise HTTPException(status_code=404, detail="Opportunity not found")
+    opportunity = {
+        "title": opp.title, "organization": opp.organization, "type": opp.type,
+        "eligibility": opp.eligibility, "tags": opp.tags,
+    }
+    return analyze_resume(req.resume_text, opportunity)
