@@ -1,4 +1,4 @@
-# frontend/app.py — Beacon · Phase 1 complete (favicon logos, no letter)
+# frontend/app.py — Beacon · Phase 2 (Discover + Application Tracker)
 
 import streamlit as st
 import requests
@@ -20,15 +20,14 @@ st.markdown("""
 }
 #MainMenu, footer {visibility: hidden;}
 .stApp, .stMarkdown, p, span, div { color:#cfcfcf; font-family:'Rajdhani',sans-serif; font-weight:500; }
-.hero { background:#131313; border:1px solid #2a2a2a; border-top:3px solid #f5c518; padding:2.4rem 2.2rem; border-radius:4px; margin-bottom:2rem; }
+.hero { background:#131313; border:1px solid #2a2a2a; border-top:3px solid #f5c518; padding:2.4rem 2.2rem; border-radius:4px; margin-bottom:1.5rem; }
 .hero h1 { font-family:'Orbitron',sans-serif; font-size:2.6rem; font-weight:900; margin:0; color:#f5c518; letter-spacing:4px; text-transform:uppercase; }
 .hero .quote { font-family:'JetBrains Mono',monospace; color:#8a8a8a; font-size:0.98rem; margin:0.9rem 0 0 0; }
 .section-head { font-family:'Orbitron',sans-serif; color:#f5c518; font-size:1.1rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin:0.5rem 0 1.4rem 0; border-left:3px solid #f5c518; padding-left:0.7rem; }
-.card { background:#141414; border:1px solid #262626; border-radius:4px; padding:1.5rem 1.7rem; margin-bottom:1.1rem; transition:all 0.18s ease; }
-.card:hover { border-color:#f5c518; transform:translateX(4px); }
+.card { background:#141414; border:1px solid #262626; border-radius:4px; padding:1.3rem 1.6rem 0.6rem 1.6rem; margin-bottom:0.3rem; }
 .logo-box { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:6px; background:#1e1e1e; border:1px solid #333; vertical-align:middle; margin-right:12px; overflow:hidden; }
 .logo-box img { width:22px; height:22px; object-fit:contain; }
-.card-title { font-family:'Rajdhani',sans-serif; font-size:1.45rem; font-weight:700; color:#fff; letter-spacing:0.5px; vertical-align:middle; }
+.card-title { font-family:'Rajdhani',sans-serif; font-size:1.4rem; font-weight:700; color:#fff; letter-spacing:0.5px; vertical-align:middle; }
 .card-org { font-family:'JetBrains Mono',monospace; color:#777; font-size:0.82rem; margin:0.4rem 0 0.9rem 0; }
 .card-meta { color:#b8b8b8; font-size:0.95rem; margin:0.3rem 0; }
 .badge { display:inline-block; padding:0.22rem 0.8rem; border-radius:3px; font-family:'JetBrains Mono',monospace; font-size:0.72rem; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; margin:0 0.4rem 0.6rem 0; }
@@ -38,11 +37,13 @@ st.markdown("""
 .deadline-green { color:#34c98a; font-weight:700; }
 .deadline-yellow { color:#f5c518; font-weight:700; }
 .deadline-red { color:#ff4d4d; font-weight:700; }
-.apply-btn { display:inline-block; margin-top:0.8rem; padding:0.5rem 1.4rem; background:#f5c518; color:#0d0d0d !important; text-decoration:none; border-radius:3px; font-family:'Orbitron',sans-serif; font-weight:700; font-size:0.8rem; letter-spacing:1.5px; text-transform:uppercase; }
-.apply-btn:hover { background:transparent; color:#f5c518 !important; box-shadow:inset 0 0 0 1px #f5c518; }
 .filter-label { font-family:'JetBrains Mono',monospace; color:#f5c518; font-size:0.78rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:0.3rem; }
-.stTextInput input, .stMultiSelect div[data-baseweb="select"] > div { background-color:#141414 !important; border:1px solid #2a2a2a !important; border-radius:4px !important; color:#e0e0e0 !important; }
+.stTextInput input, .stMultiSelect div[data-baseweb="select"] > div, .stSelectbox div[data-baseweb="select"] > div { background-color:#141414 !important; border:1px solid #2a2a2a !important; border-radius:4px !important; color:#e0e0e0 !important; }
 .stTextInput input:focus { border-color:#f5c518 !important; }
+/* Stat cards on the dashboard */
+.stat { background:#141414; border:1px solid #262626; border-top:3px solid #f5c518; border-radius:4px; padding:1.1rem 1.2rem; text-align:center; }
+.stat-num { font-family:'Orbitron',sans-serif; font-size:2rem; font-weight:900; color:#f5c518; }
+.stat-label { font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:#999; letter-spacing:1px; text-transform:uppercase; margin-top:0.3rem; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -51,6 +52,8 @@ quote = random.choice(QUOTES)
 
 TYPE_COLORS = {"internship":"#f5c518","scholarship":"#e0b020","fellowship":"#d4a017","hackathon":"#ffcc33","competition":"#e8b923","research":"#c9a227","remote_job":"#bfa030"}
 DIFF_COLORS = {"Beginner":"#34c98a","Intermediate":"#f5c518","Advanced":"#ff6b4d"}
+STATUS_OPTIONS = ["saved", "applied", "interview", "rejected", "accepted"]
+STATUS_LABELS = {"saved":"📌 Saved", "applied":"📨 Applied", "interview":"🎤 Interview", "rejected":"❌ Rejected", "accepted":"✅ Accepted"}
 
 
 def safe(value, default="N/A"):
@@ -60,9 +63,6 @@ def safe(value, default="N/A"):
 
 
 def logo_img(o):
-    """Show only the favicon logo for the opportunity's source_url domain
-    (via Google's favicon service). If it fails, onerror hides it and the
-    box stays empty. Flat HTML so Streamlit renders it safely."""
     url = o.get("source_url") or ""
     img = ""
     try:
@@ -73,18 +73,6 @@ def logo_img(o):
     except Exception:
         img = ""
     return f'<span class="logo-box">{img}</span>'
-
-
-st.markdown(f'<div class="hero"><h1>🛰️ Beacon</h1><p class="quote">// {quote}</p></div>', unsafe_allow_html=True)
-
-
-def fetch():
-    try:
-        r = requests.get(f"{API_URL}/opportunities")
-        r.raise_for_status()
-        return r.json()
-    except requests.exceptions.RequestException:
-        return None
 
 
 def days_until(s):
@@ -105,73 +93,55 @@ def deadline_html(s):
     return f'<span class="{cls}">⏳ {label}</span>'
 
 
-opportunities = fetch()
-if opportunities is None:
-    st.error("⚠️ Could not connect to the backend. Start it: `uvicorn backend.main:app --reload`")
-    st.stop()
-
-st.markdown('<div class="filter-label">🔍 Search</div>', unsafe_allow_html=True)
-search_query = st.text_input("search", placeholder="Title, company, skill, keyword...", label_visibility="collapsed")
-
-c1, c2, c3 = st.columns(3)
-with c1:
-    types = sorted({o.get("type", "") for o in opportunities if o.get("type")})
-    st.markdown('<div class="filter-label">🎯 Type</div>', unsafe_allow_html=True)
-    sel_types = st.multiselect("t", options=[t.replace("_", " ").title() for t in types], label_visibility="collapsed", placeholder="All types")
-with c2:
-    modes = sorted({o.get("work_mode", "") for o in opportunities if o.get("work_mode")})
-    st.markdown('<div class="filter-label">💻 Work Mode</div>', unsafe_allow_html=True)
-    sel_modes = st.multiselect("m", options=modes, label_visibility="collapsed", placeholder="Any mode")
-with c3:
-    st.markdown('<div class="filter-label">📊 Difficulty</div>', unsafe_allow_html=True)
-    sel_diffs = st.multiselect("d", options=["Beginner", "Intermediate", "Advanced"], label_visibility="collapsed", placeholder="Any level")
-
-raw_types = [t.lower().replace(" ", "_") for t in sel_types]
+# ---- API helpers ----
+def fetch_opportunities():
+    try:
+        r = requests.get(f"{API_URL}/opportunities")
+        r.raise_for_status()
+        return r.json()
+    except requests.exceptions.RequestException:
+        return None
 
 
-def matches(opp):
-    if search_query:
-        hay = " ".join([safe(opp.get("title"), ""), safe(opp.get("organization"), ""), safe(opp.get("category"), ""), " ".join(opp.get("tags", []) or []), safe(opp.get("location"), "")]).lower()
-        if search_query.lower() not in hay:
-            return False
-    if raw_types and opp.get("type") not in raw_types:
-        return False
-    if sel_modes and opp.get("work_mode") not in sel_modes:
-        return False
-    if sel_diffs and opp.get("difficulty") not in sel_diffs:
-        return False
-    return True
+def fetch_saved():
+    try:
+        r = requests.get(f"{API_URL}/saved")
+        r.raise_for_status()
+        return r.json()
+    except requests.exceptions.RequestException:
+        return []
 
 
-filtered = [o for o in opportunities if matches(o)]
-n = len(filtered)
-st.markdown(f'<div class="section-head">{n} {"OPPORTUNITY" if n == 1 else "OPPORTUNITIES"} IN RANGE</div>', unsafe_allow_html=True)
+def save_opportunity(opp_id, status):
+    try:
+        requests.post(f"{API_URL}/save", json={"opportunity_id": opp_id, "status": status})
+    except requests.exceptions.RequestException:
+        pass
 
-if not filtered:
-    st.markdown('<div class="card" style="text-align:center;padding:3rem;"><div class="card-title" style="color:#f5c518;">🛰️ No signals detected</div><div class="card-meta">Try different keywords or clear filters.</div></div>', unsafe_allow_html=True)
-    st.stop()
 
-for o in filtered:
-    t = safe(o.get("type"), "")
+def unsave_opportunity(opp_id):
+    try:
+        requests.delete(f"{API_URL}/save/{opp_id}")
+    except requests.exceptions.RequestException:
+        pass
+
+
+def card_html(o):
+    """Build the visual HTML for a card (without the buttons)."""
     accent = TYPE_COLORS.get(o.get("type"), "#f5c518")
-    type_label = t.replace("_", " ") if t else "Opportunity"
-
+    type_label = (o.get("type") or "opportunity").replace("_", " ")
     stipend = safe(o.get("stipend"), "Not specified")
     unpaid = any(w in stipend.lower() for w in ["unpaid", "volunteer", "not specified", "free"])
     sclass = "stipend stipend-unpaid" if unpaid else "stipend"
-
     diff = o.get("difficulty")
     diff_badge = ""
     if diff:
         dc = DIFF_COLORS.get(diff, "#999")
         diff_badge = f'<span class="badge" style="border:1px solid {dc};color:{dc};">{safe(diff)}</span>'
-
     mode = o.get("work_mode")
     mode_badge = f'<span class="badge" style="border:1px solid #555;color:#aaa;">{safe(mode)}</span>' if mode else ""
-
     tags = "".join(f'<span class="tag">{safe(x)}</span>' for x in (o.get("tags") or []))
-
-    card = (
+    return (
         f'<div class="card">'
         f'{logo_img(o)}'
         f'<span class="card-title">{safe(o.get("title"), "Untitled")}</span>'
@@ -184,7 +154,127 @@ for o in filtered:
         f'<div class="card-meta">💰 <span class="{sclass}">{stipend}</span></div>'
         f'<div class="card-meta">✅ <b>Eligibility:</b> {safe(o.get("eligibility"))}</div>'
         f'<div style="margin-top:0.6rem;">{tags}</div>'
-        f'<a class="apply-btn" href="{safe(o.get("source_url"), "#")}" target="_blank">Apply ↗</a>'
         f'</div>'
     )
-    st.markdown(card, unsafe_allow_html=True)
+
+
+# ---- HEADER ----
+st.markdown(f'<div class="hero"><h1>🛰️ Beacon</h1><p class="quote">// {quote}</p></div>', unsafe_allow_html=True)
+
+opportunities = fetch_opportunities()
+if opportunities is None:
+    st.error("⚠️ Could not connect to the backend. Start it: `uvicorn backend.main:app --reload`")
+    st.stop()
+
+# Build a set of saved opportunity IDs so cards know what's already saved.
+saved_list = fetch_saved()
+saved_ids = {s["id"]: s.get("status", "saved") for s in saved_list}
+
+tab_discover, tab_tracker = st.tabs(["🔍 DISCOVER", "📋 MY APPLICATIONS"])
+
+# =====================================================================
+# TAB 1 — DISCOVER
+# =====================================================================
+with tab_discover:
+    st.markdown('<div class="filter-label">🔍 Search</div>', unsafe_allow_html=True)
+    search_query = st.text_input("search", placeholder="Title, company, skill, keyword...", label_visibility="collapsed")
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        types = sorted({o.get("type", "") for o in opportunities if o.get("type")})
+        st.markdown('<div class="filter-label">🎯 Type</div>', unsafe_allow_html=True)
+        sel_types = st.multiselect("t", options=[t.replace("_", " ").title() for t in types], label_visibility="collapsed", placeholder="All types")
+    with c2:
+        modes = sorted({o.get("work_mode", "") for o in opportunities if o.get("work_mode")})
+        st.markdown('<div class="filter-label">💻 Work Mode</div>', unsafe_allow_html=True)
+        sel_modes = st.multiselect("m", options=modes, label_visibility="collapsed", placeholder="Any mode")
+    with c3:
+        st.markdown('<div class="filter-label">📊 Difficulty</div>', unsafe_allow_html=True)
+        sel_diffs = st.multiselect("d", options=["Beginner", "Intermediate", "Advanced"], label_visibility="collapsed", placeholder="Any level")
+
+    raw_types = [t.lower().replace(" ", "_") for t in sel_types]
+
+    def matches(opp):
+        if search_query:
+            hay = " ".join([safe(opp.get("title"), ""), safe(opp.get("organization"), ""), safe(opp.get("category"), ""), " ".join(opp.get("tags", []) or []), safe(opp.get("location"), "")]).lower()
+            if search_query.lower() not in hay:
+                return False
+        if raw_types and opp.get("type") not in raw_types:
+            return False
+        if sel_modes and opp.get("work_mode") not in sel_modes:
+            return False
+        if sel_diffs and opp.get("difficulty") not in sel_diffs:
+            return False
+        return True
+
+    filtered = [o for o in opportunities if matches(o)]
+    n = len(filtered)
+    st.markdown(f'<div class="section-head">{n} {"OPPORTUNITY" if n == 1 else "OPPORTUNITIES"} IN RANGE</div>', unsafe_allow_html=True)
+
+    if not filtered:
+        st.markdown('<div class="card" style="text-align:center;padding:3rem;"><div class="card-title" style="color:#f5c518;">🛰️ No signals detected</div></div>', unsafe_allow_html=True)
+    else:
+        for o in filtered:
+            st.markdown(card_html(o), unsafe_allow_html=True)
+            # Action row beneath each card: Apply link + Save/Saved button.
+            col_apply, col_save, col_spacer = st.columns([1.2, 1.2, 4])
+            with col_apply:
+                st.link_button("Apply ↗", o.get("source_url", "#"))
+            with col_save:
+                if o["id"] in saved_ids:
+                    if st.button("✓ Saved", key=f"unsave_{o['id']}"):
+                        unsave_opportunity(o["id"])
+                        st.rerun()
+                else:
+                    if st.button("＋ Save", key=f"save_{o['id']}"):
+                        save_opportunity(o["id"], "saved")
+                        st.rerun()
+            st.markdown("<div style='margin-bottom:1rem;'></div>", unsafe_allow_html=True)
+
+# =====================================================================
+# TAB 2 — MY APPLICATIONS (tracker + dashboard)
+# =====================================================================
+with tab_tracker:
+    saved = fetch_saved()
+
+    if not saved:
+        st.markdown('<div class="card" style="text-align:center;padding:3rem;"><div class="card-title" style="color:#f5c518;">📋 No applications yet</div><div class="card-meta">Go to Discover and save some opportunities to start tracking.</div></div>', unsafe_allow_html=True)
+    else:
+        # ---- Dashboard stats ----
+        total = len(saved)
+        applied = sum(1 for s in saved if s.get("status") in ["applied", "interview", "rejected", "accepted"])
+        interviews = sum(1 for s in saved if s.get("status") == "interview")
+        accepted = sum(1 for s in saved if s.get("status") == "accepted")
+        # Acceptance rate = accepted / applications sent (avoid divide-by-zero).
+        acc_rate = f"{round(accepted / applied * 100)}%" if applied else "—"
+
+        s1, s2, s3, s4 = st.columns(4)
+        for col, num, label in [
+            (s1, total, "Saved"), (s2, applied, "Applied"),
+            (s3, interviews, "Interviews"), (s4, acc_rate, "Accept Rate"),
+        ]:
+            col.markdown(f'<div class="stat"><div class="stat-num">{num}</div><div class="stat-label">{label}</div></div>', unsafe_allow_html=True)
+
+        st.markdown("<div style='margin:1.4rem 0;'></div>", unsafe_allow_html=True)
+
+        # ---- Saved opportunities, each with a status dropdown ----
+        st.markdown('<div class="section-head">YOUR PIPELINE</div>', unsafe_allow_html=True)
+        for o in saved:
+            st.markdown(card_html(o), unsafe_allow_html=True)
+            col_status, col_remove, col_spacer = st.columns([2, 1, 3])
+            with col_status:
+                current = o.get("status", "saved")
+                new_status = st.selectbox(
+                    "status", STATUS_OPTIONS,
+                    index=STATUS_OPTIONS.index(current) if current in STATUS_OPTIONS else 0,
+                    format_func=lambda s: STATUS_LABELS.get(s, s),
+                    key=f"status_{o['id']}", label_visibility="collapsed",
+                )
+                if new_status != current:
+                    save_opportunity(o["id"], new_status)
+                    st.rerun()
+            with col_remove:
+                if st.button("🗑 Remove", key=f"remove_{o['id']}"):
+                    unsave_opportunity(o["id"])
+                    st.rerun()
+            st.markdown("<div style='margin-bottom:1rem;'></div>", unsafe_allow_html=True)
