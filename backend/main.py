@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from backend.database import engine, get_db, Base
 from backend.models import Opportunity, SavedOpportunity
-from backend.ai import check_eligibility, analyze_resume
+from backend.ai import check_eligibility, analyze_resume, recommend_opportunities
 
 Base.metadata.create_all(bind=engine)
 
@@ -137,3 +137,39 @@ def analyze(req: ResumeRequest, db: Session = Depends(get_db)):
         "eligibility": opp.eligibility, "tags": opp.tags,
     }
     return analyze_resume(req.resume_text, opportunity)
+
+
+# Pydantic model for the recommendation request.
+class RecommendRequest(BaseModel):
+    education: str = ""
+    skills: str = ""
+    interests: str = ""
+    goals: str = ""
+
+
+# POST /recommend — AI ranks the best-fit opportunities for a student profile.
+@app.post("/recommend")
+def recommend(req: RecommendRequest, db: Session = Depends(get_db)):
+    rows = db.query(Opportunity).all()
+    opportunities = [opportunity_to_dict(o) for o in rows]
+
+    profile = {
+        "education": req.education, "skills": req.skills,
+        "interests": req.interests, "goals": req.goals,
+    }
+    result = recommend_opportunities(profile, opportunities)
+
+    # The AI returns ids; hydrate them into full opportunity objects for the UI.
+    if "matches" in result:
+        by_id = {o["id"]: o for o in opportunities}
+        hydrated = []
+        for m in result["matches"]:
+            opp = by_id.get(m.get("id"))
+            if opp:
+                enriched = dict(opp)
+                enriched["match"] = m.get("match")
+                enriched["reason"] = m.get("reason")
+                hydrated.append(enriched)
+        return {"matches": hydrated}
+
+    return result

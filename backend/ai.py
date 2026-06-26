@@ -113,3 +113,51 @@ JSON object, no markdown, no extra text, in exactly this format:
         return _extract_json(response.text)
     except Exception as e:
         return {"error": f"AI request failed: {str(e)}"}
+    
+
+def recommend_opportunities(profile, opportunities):
+    """Ask Gemini to pick and rank the best-fit opportunities for a student.
+    `opportunities` is the full list; we send a trimmed version to keep the
+    prompt compact, then return the AI's ranked picks (ids + reasons)."""
+
+    if not API_KEY:
+        return {"error": "AI is not configured. Set GEMINI_API_KEY in your .env file."}
+
+    # Trim each opportunity to just what the AI needs to judge fit.
+    compact = [
+        {
+            "id": o.get("id"),
+            "title": o.get("title"),
+            "type": o.get("type"),
+            "eligibility": o.get("eligibility"),
+            "tags": o.get("tags"),
+        }
+        for o in opportunities
+    ]
+
+    prompt = f"""You are a career advisor matching a student to opportunities.
+
+STUDENT PROFILE:
+- Education: {profile.get('education')}
+- Skills: {profile.get('skills')}
+- Interests: {profile.get('interests')}
+- Goals: {profile.get('goals')}
+
+AVAILABLE OPPORTUNITIES (JSON list):
+{json.dumps(compact)}
+
+Pick the 5 best-fit opportunities for this student. Respond with ONLY a valid
+JSON object, no markdown, no extra text, in exactly this format:
+{{
+  "matches": [
+    {{"id": <opportunity id>, "match": <integer 0-100>, "reason": "<one short sentence why it fits>"}}
+  ]
+}}
+Order matches from best to worst fit. Only include opportunities from the list above."""
+
+    try:
+        model = genai.GenerativeModel(MODEL_NAME)
+        response = model.generate_content(prompt)
+        return _extract_json(response.text)
+    except Exception as e:
+        return {"error": f"AI request failed: {str(e)}"}

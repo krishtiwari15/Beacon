@@ -1,4 +1,4 @@
-# frontend/app.py — Beacon · Phase 3 (Discover + Tracker + AI Eligibility + Resume Analyzer)
+# frontend/app.py — Beacon · Phase 4 (Discover + Tracker + Eligibility + Resume + Career Copilot)
 
 import streamlit as st
 import requests
@@ -40,13 +40,14 @@ st.markdown("""
 .deadline-yellow { color:#f5c518; font-weight:700; }
 .deadline-red { color:#ff4d4d; font-weight:700; }
 .filter-label { font-family:'JetBrains Mono',monospace; color:#f5c518; font-size:0.78rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:0.3rem; }
-.stTextInput input, .stMultiSelect div[data-baseweb="select"] > div, .stSelectbox div[data-baseweb="select"] > div { background-color:#141414 !important; border:1px solid #2a2a2a !important; border-radius:4px !important; color:#e0e0e0 !important; }
+.stTextInput input, .stTextArea textarea, .stMultiSelect div[data-baseweb="select"] > div, .stSelectbox div[data-baseweb="select"] > div { background-color:#141414 !important; border:1px solid #2a2a2a !important; border-radius:4px !important; color:#e0e0e0 !important; }
 .stTextInput input:focus { border-color:#f5c518 !important; }
 .stat { background:#141414; border:1px solid #262626; border-top:3px solid #f5c518; border-radius:4px; padding:1.1rem 1.2rem; text-align:center; }
 .stat-num { font-family:'Orbitron',sans-serif; font-size:2rem; font-weight:900; color:#f5c518; }
 .stat-label { font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:#999; letter-spacing:1px; text-transform:uppercase; margin-top:0.3rem; }
-/* Big score circle for the resume analyzer */
 .score-circle { display:inline-flex; align-items:center; justify-content:center; width:90px; height:90px; border-radius:50%; font-family:'Orbitron',sans-serif; font-size:1.8rem; font-weight:900; border:3px solid; }
+.match-pill { display:inline-block; background:#f5c518; color:#0d0d0d; font-family:'Orbitron',sans-serif; font-weight:700; font-size:0.75rem; padding:0.2rem 0.7rem; border-radius:3px; letter-spacing:1px; }
+.reason-box { background:rgba(245,197,24,0.07); border-left:3px solid #f5c518; padding:0.6rem 0.9rem; margin:0.3rem 0 0.6rem 0; font-style:italic; color:#cfcfcf; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -97,7 +98,6 @@ def deadline_html(s):
 
 
 def extract_pdf_text(uploaded_file):
-    """Read a Streamlit-uploaded PDF and return its text. Returns '' on failure."""
     try:
         reader = PdfReader(BytesIO(uploaded_file.getvalue()))
         return "\n".join((page.extract_text() or "") for page in reader.pages)
@@ -158,6 +158,15 @@ def analyze_resume(opp_id, resume_text):
         return {"error": f"Could not reach AI: {e}"}
 
 
+def recommend(profile):
+    try:
+        r = requests.post(f"{API_URL}/recommend", json=profile, timeout=45)
+        r.raise_for_status()
+        return r.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Could not reach AI: {e}"}
+
+
 def card_html(o):
     accent = TYPE_COLORS.get(o.get("type"), "#f5c518")
     type_label = (o.get("type") or "opportunity").replace("_", " ")
@@ -200,8 +209,8 @@ if opportunities is None:
 saved_list = fetch_saved()
 saved_ids = {s["id"]: s.get("status", "saved") for s in saved_list}
 
-tab_discover, tab_tracker, tab_ai, tab_resume = st.tabs(
-    ["🔍 DISCOVER", "📋 MY APPLICATIONS", "🤖 AI ELIGIBILITY", "📄 RESUME ANALYZER"]
+tab_discover, tab_tracker, tab_ai, tab_resume, tab_copilot = st.tabs(
+    ["🔍 DISCOVER", "📋 MY APPLICATIONS", "🤖 AI ELIGIBILITY", "📄 RESUME ANALYZER", "🧭 CAREER COPILOT"]
 )
 
 # =====================================================================
@@ -263,7 +272,7 @@ with tab_discover:
             st.markdown("<div style='margin-bottom:1rem;'></div>", unsafe_allow_html=True)
 
 # =====================================================================
-# TAB 2 — MY APPLICATIONS (tracker + dashboard)
+# TAB 2 — MY APPLICATIONS
 # =====================================================================
 with tab_tracker:
     saved = fetch_saved()
@@ -383,7 +392,6 @@ with tab_resume:
                     score_int = int(score)
                 except (ValueError, TypeError):
                     score_int = 0
-                # Color the score: red < 4, amber 4-6, green 7+.
                 scolor = "#ff4d4d" if score_int < 4 else ("#f5c518" if score_int < 7 else "#34c98a")
 
                 colL, colR = st.columns([1, 3])
@@ -412,3 +420,49 @@ with tab_resume:
                     st.markdown('<div class="section-head" style="font-size:0.9rem;">💡 SUGGESTIONS</div>', unsafe_allow_html=True)
                     for sug in suggestions:
                         st.markdown(f'<div class="card-meta">💡 {html.escape(str(sug))}</div>', unsafe_allow_html=True)
+
+# =====================================================================
+# TAB 5 — CAREER COPILOT (AI recommendations over your data)
+# =====================================================================
+with tab_copilot:
+    st.markdown('<div class="section-head">🧭 CAREER COPILOT</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-meta" style="margin-bottom:1rem;">Tell us about yourself, and the AI will scan all opportunities to find your best-fit matches.</div>', unsafe_allow_html=True)
+
+    with st.form("copilot_form"):
+        cc1, cc2 = st.columns(2)
+        with cc1:
+            c_education = st.text_input("Education / Degree", placeholder="e.g. BCA, 2nd year", key="c_edu")
+            c_skills = st.text_input("Your skills", placeholder="e.g. python, html, sql", key="c_skills")
+        with cc2:
+            c_interests = st.text_input("Your interests", placeholder="e.g. AI, web dev, open source", key="c_int")
+            c_goals = st.text_input("Your goals", placeholder="e.g. land a remote internship", key="c_goals")
+
+        copilot_submit = st.form_submit_button("🧭 Find My Best Matches")
+
+    if copilot_submit:
+        profile = {"education": c_education, "skills": c_skills, "interests": c_interests, "goals": c_goals}
+        with st.spinner("AI is scanning all opportunities for your best matches..."):
+            result = recommend(profile)
+
+        if "error" in result:
+            st.error(f"⚠️ {result['error']}")
+        elif not result.get("matches"):
+            st.info("No strong matches found. Try adding more detail to your skills and interests.")
+        else:
+            st.markdown('<div class="section-head" style="font-size:0.95rem;">🎯 YOUR TOP MATCHES</div>', unsafe_allow_html=True)
+            for o in result["matches"]:
+                st.markdown(card_html(o), unsafe_allow_html=True)
+                match_pct = o.get("match", "")
+                reason = o.get("reason", "")
+                if match_pct != "":
+                    st.markdown(f'<span class="match-pill">{html.escape(str(match_pct))}% MATCH</span>', unsafe_allow_html=True)
+                if reason:
+                    st.markdown(f'<div class="reason-box">🧭 {html.escape(str(reason))}</div>', unsafe_allow_html=True)
+                col_apply, col_save, _ = st.columns([1.2, 1.2, 4])
+                with col_apply:
+                    st.link_button("Apply ↗", o.get("source_url", "#"), key=f"capply_{o['id']}")
+                with col_save:
+                    if st.button("＋ Save", key=f"csave_{o['id']}"):
+                        save_opportunity(o["id"], "saved")
+                        st.rerun()
+                st.markdown("<div style='margin-bottom:1rem;'></div>", unsafe_allow_html=True)
