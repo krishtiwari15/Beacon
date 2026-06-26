@@ -1,4 +1,4 @@
-# frontend/app.py — Beacon · Phase 4 (Discover + Tracker + Eligibility + Resume + Career Copilot)
+# frontend/app.py — Beacon · Phase 5 (+ Planner: digest & deadline timeline)
 
 import streamlit as st
 import requests
@@ -48,6 +48,12 @@ st.markdown("""
 .score-circle { display:inline-flex; align-items:center; justify-content:center; width:90px; height:90px; border-radius:50%; font-family:'Orbitron',sans-serif; font-size:1.8rem; font-weight:900; border:3px solid; }
 .match-pill { display:inline-block; background:#f5c518; color:#0d0d0d; font-family:'Orbitron',sans-serif; font-weight:700; font-size:0.75rem; padding:0.2rem 0.7rem; border-radius:3px; letter-spacing:1px; }
 .reason-box { background:rgba(245,197,24,0.07); border-left:3px solid #f5c518; padding:0.6rem 0.9rem; margin:0.3rem 0 0.6rem 0; font-style:italic; color:#cfcfcf; }
+/* Planner timeline row */
+.timeline-row { display:flex; align-items:center; background:#141414; border:1px solid #262626; border-radius:4px; padding:0.8rem 1.1rem; margin-bottom:0.5rem; }
+.timeline-bar { width:5px; align-self:stretch; border-radius:3px; margin-right:1rem; min-height:42px; }
+.timeline-title { font-family:'Rajdhani',sans-serif; font-size:1.1rem; font-weight:700; color:#fff; }
+.timeline-org { font-family:'JetBrains Mono',monospace; font-size:0.74rem; color:#777; }
+.timeline-when { font-family:'JetBrains Mono',monospace; font-size:0.82rem; font-weight:600; margin-left:auto; text-align:right; white-space:nowrap; padding-left:1rem; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -209,8 +215,8 @@ if opportunities is None:
 saved_list = fetch_saved()
 saved_ids = {s["id"]: s.get("status", "saved") for s in saved_list}
 
-tab_discover, tab_tracker, tab_ai, tab_resume, tab_copilot = st.tabs(
-    ["🔍 DISCOVER", "📋 MY APPLICATIONS", "🤖 AI ELIGIBILITY", "📄 RESUME ANALYZER", "🧭 CAREER COPILOT"]
+tab_discover, tab_tracker, tab_ai, tab_resume, tab_copilot, tab_planner = st.tabs(
+    ["🔍 DISCOVER", "📋 MY APPLICATIONS", "🤖 AI ELIGIBILITY", "📄 RESUME ANALYZER", "🧭 CAREER COPILOT", "📅 PLANNER"]
 )
 
 # =====================================================================
@@ -422,7 +428,7 @@ with tab_resume:
                         st.markdown(f'<div class="card-meta">💡 {html.escape(str(sug))}</div>', unsafe_allow_html=True)
 
 # =====================================================================
-# TAB 5 — CAREER COPILOT (AI recommendations over your data)
+# TAB 5 — CAREER COPILOT
 # =====================================================================
 with tab_copilot:
     st.markdown('<div class="section-head">🧭 CAREER COPILOT</div>', unsafe_allow_html=True)
@@ -466,3 +472,62 @@ with tab_copilot:
                         save_opportunity(o["id"], "saved")
                         st.rerun()
                 st.markdown("<div style='margin-bottom:1rem;'></div>", unsafe_allow_html=True)
+
+# =====================================================================
+# TAB 6 — PLANNER (digest + global deadline timeline)
+# =====================================================================
+with tab_planner:
+    st.markdown('<div class="section-head">📅 PLANNER</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-meta" style="margin-bottom:1rem;">Your at-a-glance view of what is coming up across all opportunities.</div>', unsafe_allow_html=True)
+
+    # Compute days-until for every opportunity that has a valid deadline.
+    dated = []
+    for o in opportunities:
+        d = days_until(o.get("deadline"))
+        if d is not None:
+            dated.append((d, o))
+
+    # Digest stat counts.
+    this_week = sum(1 for d, _ in dated if 0 <= d <= 7)
+    this_month = sum(1 for d, _ in dated if 0 <= d <= 30)
+    upcoming = sum(1 for d, _ in dated if d >= 0)
+    passed = sum(1 for d, _ in dated if d < 0)
+
+    p1, p2, p3, p4 = st.columns(4)
+    for col, num, label in [
+        (p1, this_week, "Due This Week"), (p2, this_month, "Due This Month"),
+        (p3, upcoming, "Still Open"), (p4, passed, "Closed"),
+    ]:
+        col.markdown(f'<div class="stat"><div class="stat-num">{num}</div><div class="stat-label">{label}</div></div>', unsafe_allow_html=True)
+
+    st.markdown("<div style='margin:1.4rem 0;'></div>", unsafe_allow_html=True)
+
+    # Timeline: only show still-open opportunities, soonest deadline first.
+    st.markdown('<div class="section-head" style="font-size:0.95rem;">⏳ UPCOMING DEADLINES</div>', unsafe_allow_html=True)
+
+    open_sorted = sorted([(d, o) for d, o in dated if d >= 0], key=lambda x: x[0])
+
+    if not open_sorted:
+        st.markdown('<div class="card" style="text-align:center;padding:2rem;"><div class="card-meta">No upcoming deadlines found.</div></div>', unsafe_allow_html=True)
+    else:
+        for d, o in open_sorted:
+            # Color the urgency bar: red this week, amber this month, green later.
+            if d <= 7:
+                bar, when_txt, when_cls = "#ff4d4d", (f"{d} DAYS" if d != 1 else "1 DAY"), "deadline-red"
+            elif d <= 30:
+                bar, when_txt, when_cls = "#f5c518", f"{d} DAYS", "deadline-yellow"
+            else:
+                bar, when_txt, when_cls = "#34c98a", f"{d} DAYS", "deadline-green"
+
+            deadline_str = o.get("deadline", "")
+            st.markdown(
+                f'<div class="timeline-row">'
+                f'<div class="timeline-bar" style="background:{bar};"></div>'
+                f'<div>'
+                f'<div class="timeline-title">{safe(o.get("title"), "Untitled")}</div>'
+                f'<div class="timeline-org">{safe(o.get("organization"), "")} · {safe(deadline_str)}</div>'
+                f'</div>'
+                f'<div class="timeline-when {when_cls}">{when_txt}<br>LEFT</div>'
+                f'</div>',
+                unsafe_allow_html=True
+            )
