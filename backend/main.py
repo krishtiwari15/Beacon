@@ -10,6 +10,27 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Beacon API")
 
+
+# Auto-seed the database on startup if it's empty (needed because Render's
+# free tier has no Shell to run seed scripts manually).
+@app.on_event("startup")
+def seed_if_empty():
+    from backend.database import SessionLocal
+    from backend.seed import seed as seed_opps
+    from backend.seed_user import seed_user
+    db = SessionLocal()
+    try:
+        count = db.query(Opportunity).count()
+    finally:
+        db.close()
+    if count == 0:
+        print("Database empty — seeding...")
+        seed_opps()
+        seed_user()
+        print("Seeding complete.")
+    else:
+        print(f"Database already has {count} opportunities — skipping seed.")
+
 DEMO_USER_ID = 1
 VALID_STATUSES = {"saved", "applied", "interview", "rejected", "accepted"}
 
