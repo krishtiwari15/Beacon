@@ -1,4 +1,4 @@
-# frontend/app.py — Beacon · Phase 2 (Discover + Application Tracker)
+# frontend/app.py — Beacon · Phase 3 (Discover + Tracker + AI Eligibility)
 
 import streamlit as st
 import requests
@@ -40,7 +40,6 @@ st.markdown("""
 .filter-label { font-family:'JetBrains Mono',monospace; color:#f5c518; font-size:0.78rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:0.3rem; }
 .stTextInput input, .stMultiSelect div[data-baseweb="select"] > div, .stSelectbox div[data-baseweb="select"] > div { background-color:#141414 !important; border:1px solid #2a2a2a !important; border-radius:4px !important; color:#e0e0e0 !important; }
 .stTextInput input:focus { border-color:#f5c518 !important; }
-/* Stat cards on the dashboard */
 .stat { background:#141414; border:1px solid #262626; border-top:3px solid #f5c518; border-radius:4px; padding:1.1rem 1.2rem; text-align:center; }
 .stat-num { font-family:'Orbitron',sans-serif; font-size:2rem; font-weight:900; color:#f5c518; }
 .stat-label { font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:#999; letter-spacing:1px; text-transform:uppercase; margin-top:0.3rem; }
@@ -126,8 +125,18 @@ def unsave_opportunity(opp_id):
         pass
 
 
+def check_eligibility(opp_id, profile):
+    """Call the backend AI endpoint and return the verdict dict."""
+    try:
+        payload = {"opportunity_id": opp_id, **profile}
+        r = requests.post(f"{API_URL}/check-eligibility", json=payload, timeout=30)
+        r.raise_for_status()
+        return r.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"Could not reach AI: {e}"}
+
+
 def card_html(o):
-    """Build the visual HTML for a card (without the buttons)."""
     accent = TYPE_COLORS.get(o.get("type"), "#f5c518")
     type_label = (o.get("type") or "opportunity").replace("_", " ")
     stipend = safe(o.get("stipend"), "Not specified")
@@ -166,11 +175,10 @@ if opportunities is None:
     st.error("⚠️ Could not connect to the backend. Start it: `uvicorn backend.main:app --reload`")
     st.stop()
 
-# Build a set of saved opportunity IDs so cards know what's already saved.
 saved_list = fetch_saved()
 saved_ids = {s["id"]: s.get("status", "saved") for s in saved_list}
 
-tab_discover, tab_tracker = st.tabs(["🔍 DISCOVER", "📋 MY APPLICATIONS"])
+tab_discover, tab_tracker, tab_ai = st.tabs(["🔍 DISCOVER", "📋 MY APPLICATIONS", "🤖 AI ELIGIBILITY"])
 
 # =====================================================================
 # TAB 1 — DISCOVER
@@ -216,7 +224,6 @@ with tab_discover:
     else:
         for o in filtered:
             st.markdown(card_html(o), unsafe_allow_html=True)
-            # Action row beneath each card: Apply link + Save/Saved button.
             col_apply, col_save, col_spacer = st.columns([1.2, 1.2, 4])
             with col_apply:
                 st.link_button("Apply ↗", o.get("source_url", "#"))
@@ -240,12 +247,10 @@ with tab_tracker:
     if not saved:
         st.markdown('<div class="card" style="text-align:center;padding:3rem;"><div class="card-title" style="color:#f5c518;">📋 No applications yet</div><div class="card-meta">Go to Discover and save some opportunities to start tracking.</div></div>', unsafe_allow_html=True)
     else:
-        # ---- Dashboard stats ----
         total = len(saved)
         applied = sum(1 for s in saved if s.get("status") in ["applied", "interview", "rejected", "accepted"])
         interviews = sum(1 for s in saved if s.get("status") == "interview")
         accepted = sum(1 for s in saved if s.get("status") == "accepted")
-        # Acceptance rate = accepted / applications sent (avoid divide-by-zero).
         acc_rate = f"{round(accepted / applied * 100)}%" if applied else "—"
 
         s1, s2, s3, s4 = st.columns(4)
@@ -257,7 +262,6 @@ with tab_tracker:
 
         st.markdown("<div style='margin:1.4rem 0;'></div>", unsafe_allow_html=True)
 
-        # ---- Saved opportunities, each with a status dropdown ----
         st.markdown('<div class="section-head">YOUR PIPELINE</div>', unsafe_allow_html=True)
         for o in saved:
             st.markdown(card_html(o), unsafe_allow_html=True)
@@ -278,3 +282,51 @@ with tab_tracker:
                     unsave_opportunity(o["id"])
                     st.rerun()
             st.markdown("<div style='margin-bottom:1rem;'></div>", unsafe_allow_html=True)
+
+# =====================================================================
+# TAB 3 — AI ELIGIBILITY CHECKER
+# =====================================================================
+with tab_ai:
+    st.markdown('<div class="section-head">🤖 AI ELIGIBILITY CHECKER</div>', unsafe_allow_html=True)
+    st.markdown('<div class="card-meta" style="margin-bottom:1rem;">Enter your profile, pick an opportunity, and let AI assess your eligibility.</div>', unsafe_allow_html=True)
+
+    with st.form("eligibility_form"):
+        cA, cB = st.columns(2)
+        with cA:
+            age = st.text_input("Age", placeholder="e.g. 20")
+            education = st.text_input("Education / Degree", placeholder="e.g. B.Tech CS, 2nd year")
+            country = st.text_input("Country", placeholder="e.g. India")
+        with cB:
+            cgpa = st.text_input("CGPA / GPA", placeholder="e.g. 8.5")
+            skills = st.text_input("Skills", placeholder="e.g. python, sql, ml")
+
+        opp_map = {f'{o["title"]} — {o.get("organization", "")}': o["id"] for o in opportunities}
+        chosen = st.selectbox("Opportunity to check", options=list(opp_map.keys()))
+
+        submitted = st.form_submit_button("🤖 Check My Eligibility")
+
+    if submitted:
+        profile = {"age": age, "education": education, "country": country, "cgpa": cgpa, "skills": skills}
+        with st.spinner("Asking the AI..."):
+            result = check_eligibility(opp_map[chosen], profile)
+
+        if "error" in result:
+            st.error(f"⚠️ {result['error']}")
+        else:
+            verdict = result.get("verdict", "Unknown")
+            vcolor = {"Eligible": "#34c98a", "Partially Eligible": "#f5c518", "Not Eligible": "#ff4d4d"}.get(verdict, "#999")
+            st.markdown(
+                f'<div class="card" style="border-left:4px solid {vcolor};">'
+                f'<div class="card-title" style="color:{vcolor};">{html.escape(verdict)}</div>'
+                f'</div>', unsafe_allow_html=True
+            )
+            reasons = result.get("reasons", [])
+            if reasons:
+                st.markdown('<div class="section-head" style="font-size:0.9rem;">WHY</div>', unsafe_allow_html=True)
+                for rsn in reasons:
+                    st.markdown(f'<div class="card-meta">• {html.escape(str(rsn))}</div>', unsafe_allow_html=True)
+            suggestions = result.get("suggestions", [])
+            if suggestions:
+                st.markdown('<div class="section-head" style="font-size:0.9rem;">SUGGESTIONS</div>', unsafe_allow_html=True)
+                for sug in suggestions:
+                    st.markdown(f'<div class="card-meta">💡 {html.escape(str(sug))}</div>', unsafe_allow_html=True)
