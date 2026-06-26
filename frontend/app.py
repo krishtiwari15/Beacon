@@ -1,5 +1,6 @@
 # frontend/app.py — Beacon · Phase 5 (+ Planner: digest & deadline timeline)
 
+import os
 import streamlit as st
 import requests
 import random
@@ -9,7 +10,7 @@ from urllib.parse import urlparse
 from datetime import date, datetime
 from pypdf import PdfReader
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 st.set_page_config(page_title="Beacon", page_icon="🛰️", layout="wide")
 
 st.markdown("""
