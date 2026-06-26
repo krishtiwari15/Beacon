@@ -1,9 +1,10 @@
-# frontend/app.py — Beacon · Phase 1 (simplified, reliable card rendering)
+# frontend/app.py — Beacon · Phase 1 complete (favicon logos, no letter)
 
 import streamlit as st
 import requests
 import random
 import html
+from urllib.parse import urlparse
 from datetime import date, datetime
 
 API_URL = "http://127.0.0.1:8000"
@@ -25,8 +26,10 @@ st.markdown("""
 .section-head { font-family:'Orbitron',sans-serif; color:#f5c518; font-size:1.1rem; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin:0.5rem 0 1.4rem 0; border-left:3px solid #f5c518; padding-left:0.7rem; }
 .card { background:#141414; border:1px solid #262626; border-radius:4px; padding:1.5rem 1.7rem; margin-bottom:1.1rem; transition:all 0.18s ease; }
 .card:hover { border-color:#f5c518; transform:translateX(4px); }
-.card-title { font-family:'Rajdhani',sans-serif; font-size:1.45rem; font-weight:700; color:#fff; letter-spacing:0.5px; }
-.card-org { font-family:'JetBrains Mono',monospace; color:#777; font-size:0.82rem; margin-bottom:0.9rem; }
+.logo-box { display:inline-flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:6px; background:#1e1e1e; border:1px solid #333; vertical-align:middle; margin-right:12px; overflow:hidden; }
+.logo-box img { width:22px; height:22px; object-fit:contain; }
+.card-title { font-family:'Rajdhani',sans-serif; font-size:1.45rem; font-weight:700; color:#fff; letter-spacing:0.5px; vertical-align:middle; }
+.card-org { font-family:'JetBrains Mono',monospace; color:#777; font-size:0.82rem; margin:0.4rem 0 0.9rem 0; }
 .card-meta { color:#b8b8b8; font-size:0.95rem; margin:0.3rem 0; }
 .badge { display:inline-block; padding:0.22rem 0.8rem; border-radius:3px; font-family:'JetBrains Mono',monospace; font-size:0.72rem; font-weight:500; letter-spacing:1.5px; text-transform:uppercase; margin:0 0.4rem 0.6rem 0; }
 .stipend { display:inline-block; background:rgba(52,199,138,0.12); border:1px solid rgba(52,199,138,0.5); color:#34c98a; padding:0.2rem 0.7rem; border-radius:3px; font-family:'JetBrains Mono',monospace; font-size:0.8rem; font-weight:600; }
@@ -54,6 +57,22 @@ def safe(value, default="N/A"):
     if value is None or value == "":
         return html.escape(default)
     return html.escape(str(value))
+
+
+def logo_img(o):
+    """Show only the favicon logo for the opportunity's source_url domain
+    (via Google's favicon service). If it fails, onerror hides it and the
+    box stays empty. Flat HTML so Streamlit renders it safely."""
+    url = o.get("source_url") or ""
+    img = ""
+    try:
+        domain = urlparse(url).netloc
+        if domain:
+            fav = f"https://www.google.com/s2/favicons?domain={html.escape(domain)}&sz=64"
+            img = f'<img src="{fav}" onerror="this.style.display=\'none\'">'
+    except Exception:
+        img = ""
+    return f'<span class="logo-box">{img}</span>'
 
 
 st.markdown(f'<div class="hero"><h1>🛰️ Beacon</h1><p class="quote">// {quote}</p></div>', unsafe_allow_html=True)
@@ -154,7 +173,8 @@ for o in filtered:
 
     card = (
         f'<div class="card">'
-        f'<div class="card-title">{safe(o.get("title"), "Untitled")}</div>'
+        f'{logo_img(o)}'
+        f'<span class="card-title">{safe(o.get("title"), "Untitled")}</span>'
         f'<div class="card-org">{safe(o.get("organization"), "")} :: {safe(o.get("category"), "")}</div>'
         f'<div>'
         f'<span class="badge" style="border:1px solid {accent};color:{accent};">{type_label}</span>'
