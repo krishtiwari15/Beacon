@@ -55,7 +55,7 @@ class ResumeRequest(BaseModel):
     resume_text: str
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
     return {"message": "Beacon API is running!"}
 
@@ -202,7 +202,7 @@ _last_collection = {"time": None}
 # GET /run-collector — triggers collection, but only if it hasn't run in the
 # last 12 hours. This lets a frequent pinger (UptimeRobot, every 5 min) keep
 # the schedule, while we only actually hit the job APIs twice a day.
-@app.get("/run-collector")
+@app.get("/run-collector" , methods=["GET", "HEAD"])
 def run_collector(key: str = ""):
     import time
     if key != os.getenv("COLLECTOR_KEY", "changeme"):
