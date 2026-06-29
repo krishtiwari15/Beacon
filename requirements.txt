@@ -7,3 +7,4 @@ python-dotenv
 google-generativeai
 pypdf
 psycopg2-binary
+bcrypt

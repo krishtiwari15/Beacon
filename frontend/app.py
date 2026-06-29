@@ -1,4 +1,4 @@
-# frontend/app.py — Beacon · Phase 5 (+ Planner: digest & deadline timeline)
+# frontend/app.py — Beacon · with authentication (login/signup gate + per-user data)
 
 import os
 import streamlit as st
@@ -49,17 +49,14 @@ st.markdown("""
 .score-circle { display:inline-flex; align-items:center; justify-content:center; width:90px; height:90px; border-radius:50%; font-family:'Orbitron',sans-serif; font-size:1.8rem; font-weight:900; border:3px solid; }
 .match-pill { display:inline-block; background:#f5c518; color:#0d0d0d; font-family:'Orbitron',sans-serif; font-weight:700; font-size:0.75rem; padding:0.2rem 0.7rem; border-radius:3px; letter-spacing:1px; }
 .reason-box { background:rgba(245,197,24,0.07); border-left:3px solid #f5c518; padding:0.6rem 0.9rem; margin:0.3rem 0 0.6rem 0; font-style:italic; color:#cfcfcf; }
-/* Planner timeline row */
 .timeline-row { display:flex; align-items:center; background:#141414; border:1px solid #262626; border-radius:4px; padding:0.8rem 1.1rem; margin-bottom:0.5rem; }
 .timeline-bar { width:5px; align-self:stretch; border-radius:3px; margin-right:1rem; min-height:42px; }
 .timeline-title { font-family:'Rajdhani',sans-serif; font-size:1.1rem; font-weight:700; color:#fff; }
 .timeline-org { font-family:'JetBrains Mono',monospace; font-size:0.74rem; color:#777; }
 .timeline-when { font-family:'JetBrains Mono',monospace; font-size:0.82rem; font-weight:600; margin-left:auto; text-align:right; white-space:nowrap; padding-left:1rem; }
+.auth-wrap { max-width:420px; margin:1rem auto; }
 </style>
 """, unsafe_allow_html=True)
-
-QUOTES = ["OPPORTUNITIES DON'T WAIT. NEITHER SHOULD YOU.", "THE FUTURE IS BUILT BY THOSE WHO SHOW UP TODAY.", "EVERY APPLICATION IS A SHOT. TAKE IT.", "DISCIPLINE TODAY. FREEDOM TOMORROW."]
-quote = random.choice(QUOTES)
 
 TYPE_COLORS = {"internship":"#f5c518","scholarship":"#e0b020","fellowship":"#d4a017","hackathon":"#ffcc33","competition":"#e8b923","research":"#c9a227","remote_job":"#bfa030"}
 DIFF_COLORS = {"Beginner":"#34c98a","Intermediate":"#f5c518","Advanced":"#ff6b4d"}
@@ -71,6 +68,74 @@ def safe(value, default="N/A"):
     if value is None or value == "":
         return html.escape(default)
     return html.escape(str(value))
+
+
+# ---- Auth API calls ----
+def api_signup(name, email, password):
+    try:
+        r = requests.post(f"{API_URL}/signup", json={"name": name, "email": email, "password": password}, timeout=20)
+        if r.status_code == 200:
+            return r.json(), None
+        return None, r.json().get("detail", "Signup failed.")
+    except requests.exceptions.RequestException:
+        return None, "Could not reach the server."
+
+
+def api_login(email, password):
+    try:
+        r = requests.post(f"{API_URL}/login", json={"email": email, "password": password}, timeout=20)
+        if r.status_code == 200:
+            return r.json(), None
+        return None, r.json().get("detail", "Login failed.")
+    except requests.exceptions.RequestException:
+        return None, "Could not reach the server."
+
+
+# =====================================================================
+# AUTH GATE — if not logged in, show login/signup and STOP.
+# =====================================================================
+if "user" not in st.session_state:
+    st.session_state.user = None
+
+if st.session_state.user is None:
+    st.markdown('<div class="hero"><h1>🛰️ Beacon</h1><p class="quote">// SIGN IN TO TRACK YOUR OPPORTUNITIES.</p></div>', unsafe_allow_html=True)
+
+    st.markdown('<div class="auth-wrap">', unsafe_allow_html=True)
+    login_tab, signup_tab = st.tabs(["🔑 LOG IN", "✨ SIGN UP"])
+
+    with login_tab:
+        with st.form("login_form"):
+            li_email = st.text_input("Email", key="li_email")
+            li_pw = st.text_input("Password", type="password", key="li_pw")
+            li_submit = st.form_submit_button("Log In")
+        if li_submit:
+            user, err = api_login(li_email, li_pw)
+            if err:
+                st.error(f"⚠️ {err}")
+            else:
+                st.session_state.user = user
+                st.rerun()
+
+    with signup_tab:
+        with st.form("signup_form"):
+            su_name = st.text_input("Name", key="su_name")
+            su_email = st.text_input("Email", key="su_email")
+            su_pw = st.text_input("Password (min 6 characters)", type="password", key="su_pw")
+            su_submit = st.form_submit_button("Create Account")
+        if su_submit:
+            user, err = api_signup(su_name, su_email, su_pw)
+            if err:
+                st.error(f"⚠️ {err}")
+            else:
+                st.session_state.user = user
+                st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.stop()   # <-- stops here; the app below only runs when logged in.
+
+# From here down, the user IS logged in.
+USER = st.session_state.user
+USER_ID = USER["id"]
 
 
 def logo_img(o):
@@ -112,7 +177,7 @@ def extract_pdf_text(uploaded_file):
         return ""
 
 
-# ---- API helpers ----
+# ---- API helpers (now pass USER_ID where needed) ----
 def fetch_opportunities():
     try:
         r = requests.get(f"{API_URL}/opportunities")
@@ -124,7 +189,7 @@ def fetch_opportunities():
 
 def fetch_saved():
     try:
-        r = requests.get(f"{API_URL}/saved")
+        r = requests.get(f"{API_URL}/saved", params={"user_id": USER_ID})
         r.raise_for_status()
         return r.json()
     except requests.exceptions.RequestException:
@@ -133,14 +198,14 @@ def fetch_saved():
 
 def save_opportunity(opp_id, status):
     try:
-        requests.post(f"{API_URL}/save", json={"opportunity_id": opp_id, "status": status})
+        requests.post(f"{API_URL}/save", json={"user_id": USER_ID, "opportunity_id": opp_id, "status": status})
     except requests.exceptions.RequestException:
         pass
 
 
 def unsave_opportunity(opp_id):
     try:
-        requests.delete(f"{API_URL}/save/{opp_id}")
+        requests.delete(f"{API_URL}/save/{opp_id}", params={"user_id": USER_ID})
     except requests.exceptions.RequestException:
         pass
 
@@ -205,8 +270,15 @@ def card_html(o):
     )
 
 
-# ---- HEADER ----
-st.markdown(f'<div class="hero"><h1>🛰️ Beacon</h1><p class="quote">// {quote}</p></div>', unsafe_allow_html=True)
+# ---- HEADER with greeting + logout ----
+head_l, head_r = st.columns([4, 1])
+with head_l:
+    st.markdown(f'<div class="hero"><h1>🛰️ Beacon</h1><p class="quote">// WELCOME BACK, {safe(USER.get("name", "EXPLORER")).upper()}.</p></div>', unsafe_allow_html=True)
+with head_r:
+    st.markdown("<div style='height:2.4rem;'></div>", unsafe_allow_html=True)
+    if st.button("🚪 Log Out"):
+        st.session_state.user = None
+        st.rerun()
 
 opportunities = fetch_opportunities()
 if opportunities is None:
@@ -475,20 +547,18 @@ with tab_copilot:
                 st.markdown("<div style='margin-bottom:1rem;'></div>", unsafe_allow_html=True)
 
 # =====================================================================
-# TAB 6 — PLANNER (digest + global deadline timeline)
+# TAB 6 — PLANNER
 # =====================================================================
 with tab_planner:
     st.markdown('<div class="section-head">📅 PLANNER</div>', unsafe_allow_html=True)
     st.markdown('<div class="card-meta" style="margin-bottom:1rem;">Your at-a-glance view of what is coming up across all opportunities.</div>', unsafe_allow_html=True)
 
-    # Compute days-until for every opportunity that has a valid deadline.
     dated = []
     for o in opportunities:
         d = days_until(o.get("deadline"))
         if d is not None:
             dated.append((d, o))
 
-    # Digest stat counts.
     this_week = sum(1 for d, _ in dated if 0 <= d <= 7)
     this_month = sum(1 for d, _ in dated if 0 <= d <= 30)
     upcoming = sum(1 for d, _ in dated if d >= 0)
@@ -502,8 +572,6 @@ with tab_planner:
         col.markdown(f'<div class="stat"><div class="stat-num">{num}</div><div class="stat-label">{label}</div></div>', unsafe_allow_html=True)
 
     st.markdown("<div style='margin:1.4rem 0;'></div>", unsafe_allow_html=True)
-
-    # Timeline: only show still-open opportunities, soonest deadline first.
     st.markdown('<div class="section-head" style="font-size:0.95rem;">⏳ UPCOMING DEADLINES</div>', unsafe_allow_html=True)
 
     open_sorted = sorted([(d, o) for d, o in dated if d >= 0], key=lambda x: x[0])
@@ -512,7 +580,6 @@ with tab_planner:
         st.markdown('<div class="card" style="text-align:center;padding:2rem;"><div class="card-meta">No upcoming deadlines found.</div></div>', unsafe_allow_html=True)
     else:
         for d, o in open_sorted:
-            # Color the urgency bar: red this week, amber this month, green later.
             if d <= 7:
                 bar, when_txt, when_cls = "#ff4d4d", (f"{d} DAYS" if d != 1 else "1 DAY"), "deadline-red"
             elif d <= 30:

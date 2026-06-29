@@ -4,16 +4,15 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from backend.database import engine, get_db, Base
-from backend.models import Opportunity, SavedOpportunity
+from backend.models import Opportunity, SavedOpportunity, User
 from backend.ai import check_eligibility, analyze_resume, recommend_opportunities
+from backend.auth import hash_password, verify_password
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Beacon API")
 
 
-# Auto-seed the database on startup if it's empty (needed because Render's
-# free tier has no Shell to run seed scripts manually).
 @app.on_event("startup")
 def seed_if_empty():
     from backend.database import SessionLocal
@@ -32,11 +31,12 @@ def seed_if_empty():
     else:
         print(f"Database already has {count} opportunities — skipping seed.")
 
-DEMO_USER_ID = 1
 VALID_STATUSES = {"saved", "applied", "interview", "rejected", "accepted"}
 
 
+# ---------- Request models ----------
 class SaveRequest(BaseModel):
+    user_id: int
     opportunity_id: int
     status: str = "saved"
 
@@ -62,7 +62,53 @@ class RecommendRequest(BaseModel):
     goals: str = ""
 
 
-# Accept both GET and HEAD so uptime monitors (which send HEAD) don't 405.
+class SignupRequest(BaseModel):
+    name: str
+    email: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+# ---------- Auth endpoints ----------
+@app.post("/signup")
+def signup(req: SignupRequest, db: Session = Depends(get_db)):
+    # Basic validation.
+    if len(req.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
+    if "@" not in req.email:
+        raise HTTPException(status_code=400, detail="Please enter a valid email.")
+
+    # Is this email already registered?
+    existing = db.query(User).filter(User.email == req.email.lower().strip()).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="An account with this email already exists.")
+
+    user = User(
+        name=req.name.strip(),
+        email=req.email.lower().strip(),
+        password_hash=hash_password(req.password),
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return {"id": user.id, "name": user.name, "email": user.email}
+
+
+@app.post("/login")
+def login(req: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == req.email.lower().strip()).first()
+    # Same generic message whether email is missing or password is wrong —
+    # this avoids leaking which emails are registered (a security best practice).
+    if not user or not verify_password(req.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+    return {"id": user.id, "name": user.name, "email": user.email}
+
+
+# ---------- Core endpoints ----------
 @app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
     return {"message": "Beacon API is running!"}
@@ -101,23 +147,23 @@ def save_opportunity(req: SaveRequest, db: Session = Depends(get_db)):
     if not opp:
         raise HTTPException(status_code=404, detail="Opportunity not found")
     existing = db.query(SavedOpportunity).filter(
-        SavedOpportunity.user_id == DEMO_USER_ID,
+        SavedOpportunity.user_id == req.user_id,
         SavedOpportunity.opportunity_id == req.opportunity_id,
     ).first()
     if existing:
         existing.status = req.status
     else:
         db.add(SavedOpportunity(
-            user_id=DEMO_USER_ID, opportunity_id=req.opportunity_id, status=req.status,
+            user_id=req.user_id, opportunity_id=req.opportunity_id, status=req.status,
         ))
     db.commit()
     return {"message": "Saved", "opportunity_id": req.opportunity_id, "status": req.status}
 
 
 @app.get("/saved")
-def list_saved(db: Session = Depends(get_db)):
+def list_saved(user_id: int, db: Session = Depends(get_db)):
     saves = db.query(SavedOpportunity).filter(
-        SavedOpportunity.user_id == DEMO_USER_ID
+        SavedOpportunity.user_id == user_id
     ).all()
     result = []
     for s in saves:
@@ -129,9 +175,9 @@ def list_saved(db: Session = Depends(get_db)):
 
 
 @app.delete("/save/{opportunity_id}")
-def unsave_opportunity(opportunity_id: int, db: Session = Depends(get_db)):
+def unsave_opportunity(opportunity_id: int, user_id: int, db: Session = Depends(get_db)):
     existing = db.query(SavedOpportunity).filter(
-        SavedOpportunity.user_id == DEMO_USER_ID,
+        SavedOpportunity.user_id == user_id,
         SavedOpportunity.opportunity_id == opportunity_id,
     ).first()
     if not existing:
@@ -192,25 +238,20 @@ def recommend(req: RecommendRequest, db: Session = Depends(get_db)):
     return result
 
 
-# Tracks the last time collection actually ran (in memory).
 _last_collection = {"time": None}
 
 
-# Accept GET and HEAD. Protected by COLLECTOR_KEY. Has a 12-hour cooldown so a
-# frequent uptime pinger can't spam the job APIs.
 @app.api_route("/run-collector", methods=["GET", "HEAD"])
 def run_collector(key: str = ""):
     import time
     if key != os.getenv("COLLECTOR_KEY", "changeme"):
         raise HTTPException(status_code=403, detail="Forbidden")
-
     COOLDOWN_SECONDS = 12 * 60 * 60
     now = time.time()
     last = _last_collection["time"]
     if last is not None and (now - last) < COOLDOWN_SECONDS:
         remaining = int((COOLDOWN_SECONDS - (now - last)) / 60)
         return {"message": f"Skipped — last ran recently. Next run in ~{remaining} min."}
-
     from backend.collector import collect
     collect()
     _last_collection["time"] = now
