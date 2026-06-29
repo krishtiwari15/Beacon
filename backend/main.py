@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -180,7 +181,6 @@ def recommend(req: RecommendRequest, db: Session = Depends(get_db)):
     }
     result = recommend_opportunities(profile, opportunities)
 
-    # The AI returns ids; hydrate them into full opportunity objects for the UI.
     if "matches" in result:
         by_id = {o["id"]: o for o in opportunities}
         hydrated = []
@@ -194,3 +194,15 @@ def recommend(req: RecommendRequest, db: Session = Depends(get_db)):
         return {"matches": hydrated}
 
     return result
+
+
+# GET /run-collector — triggers the multi-source collection pipeline.
+# Protected by a secret key (set as the COLLECTOR_KEY env var) so only our
+# scheduled pinger (UptimeRobot) can trigger it, not random visitors.
+@app.get("/run-collector")
+def run_collector(key: str = ""):
+    if key != os.getenv("COLLECTOR_KEY", "changeme"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    from backend.collector import collect
+    collect()
+    return {"message": "Collection run complete"}
