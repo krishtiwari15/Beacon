@@ -196,13 +196,28 @@ def recommend(req: RecommendRequest, db: Session = Depends(get_db)):
     return result
 
 
-# GET /run-collector — triggers the multi-source collection pipeline.
-# Protected by a secret key (set as the COLLECTOR_KEY env var) so only our
-# scheduled pinger (UptimeRobot) can trigger it, not random visitors.
+# Tracks the last time we actually ran collection (in memory).
+_last_collection = {"time": None}
+
+# GET /run-collector — triggers collection, but only if it hasn't run in the
+# last 12 hours. This lets a frequent pinger (UptimeRobot, every 5 min) keep
+# the schedule, while we only actually hit the job APIs twice a day.
 @app.get("/run-collector")
 def run_collector(key: str = ""):
+    import time
     if key != os.getenv("COLLECTOR_KEY", "changeme"):
         raise HTTPException(status_code=403, detail="Forbidden")
+
+    COOLDOWN_SECONDS = 12 * 60 * 60   # 12 hours
+    now = time.time()
+    last = _last_collection["time"]
+
+    if last is not None and (now - last) < COOLDOWN_SECONDS:
+        remaining = int((COOLDOWN_SECONDS - (now - last)) / 60)
+        return {"message": f"Skipped — last ran recently. Next run in ~{remaining} min."}
+
     from backend.collector import collect
     collect()
+    _last_collection["time"] = now
     return {"message": "Collection run complete"}
+    
