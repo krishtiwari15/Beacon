@@ -55,6 +55,14 @@ class ResumeRequest(BaseModel):
     resume_text: str
 
 
+class RecommendRequest(BaseModel):
+    education: str = ""
+    skills: str = ""
+    interests: str = ""
+    goals: str = ""
+
+
+# Accept both GET and HEAD so uptime monitors (which send HEAD) don't 405.
 @app.api_route("/", methods=["GET", "HEAD"])
 def read_root():
     return {"message": "Beacon API is running!"}
@@ -161,26 +169,15 @@ def analyze(req: ResumeRequest, db: Session = Depends(get_db)):
     return analyze_resume(req.resume_text, opportunity)
 
 
-# Pydantic model for the recommendation request.
-class RecommendRequest(BaseModel):
-    education: str = ""
-    skills: str = ""
-    interests: str = ""
-    goals: str = ""
-
-
-# POST /recommend — AI ranks the best-fit opportunities for a student profile.
 @app.post("/recommend")
 def recommend(req: RecommendRequest, db: Session = Depends(get_db)):
     rows = db.query(Opportunity).all()
     opportunities = [opportunity_to_dict(o) for o in rows]
-
     profile = {
         "education": req.education, "skills": req.skills,
         "interests": req.interests, "goals": req.goals,
     }
     result = recommend_opportunities(profile, opportunities)
-
     if "matches" in result:
         by_id = {o["id"]: o for o in opportunities}
         hydrated = []
@@ -192,26 +189,24 @@ def recommend(req: RecommendRequest, db: Session = Depends(get_db)):
                 enriched["reason"] = m.get("reason")
                 hydrated.append(enriched)
         return {"matches": hydrated}
-
     return result
 
 
-# Tracks the last time we actually ran collection (in memory).
+# Tracks the last time collection actually ran (in memory).
 _last_collection = {"time": None}
 
-# GET /run-collector — triggers collection, but only if it hasn't run in the
-# last 12 hours. This lets a frequent pinger (UptimeRobot, every 5 min) keep
-# the schedule, while we only actually hit the job APIs twice a day.
-@app.get("/run-collector" , methods=["GET", "HEAD"])
+
+# Accept GET and HEAD. Protected by COLLECTOR_KEY. Has a 12-hour cooldown so a
+# frequent uptime pinger can't spam the job APIs.
+@app.api_route("/run-collector", methods=["GET", "HEAD"])
 def run_collector(key: str = ""):
     import time
     if key != os.getenv("COLLECTOR_KEY", "changeme"):
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    COOLDOWN_SECONDS = 12 * 60 * 60   # 12 hours
+    COOLDOWN_SECONDS = 12 * 60 * 60
     now = time.time()
     last = _last_collection["time"]
-
     if last is not None and (now - last) < COOLDOWN_SECONDS:
         remaining = int((COOLDOWN_SECONDS - (now - last)) / 60)
         return {"message": f"Skipped — last ran recently. Next run in ~{remaining} min."}
@@ -220,4 +215,3 @@ def run_collector(key: str = ""):
     collect()
     _last_collection["time"] = now
     return {"message": "Collection run complete"}
-    
