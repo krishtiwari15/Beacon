@@ -14,10 +14,26 @@ app = FastAPI(title="Beacon API")
 
 
 @app.on_event("startup")
-def seed_if_empty():
+def startup_tasks():
+    from sqlalchemy import text, inspect
     from backend.database import SessionLocal
     from backend.seed import seed as seed_opps
     from backend.seed_user import seed_user
+
+    # --- 1. Add the password_hash column if it's missing (for existing databases) ---
+    try:
+        inspector = inspect(engine)
+        columns = [c["name"] for c in inspector.get_columns("users")]
+        if "password_hash" not in columns:
+            print("Adding missing password_hash column...")
+            with engine.connect() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN password_hash VARCHAR"))
+                conn.commit()
+            print("Column added.")
+    except Exception as e:
+        print(f"Column check skipped: {e}")
+
+    # --- 2. Seed opportunities if the database is empty ---
     db = SessionLocal()
     try:
         count = db.query(Opportunity).count()
@@ -30,6 +46,7 @@ def seed_if_empty():
         print("Seeding complete.")
     else:
         print(f"Database already has {count} opportunities — skipping seed.")
+        
 
 VALID_STATUSES = {"saved", "applied", "interview", "rejected", "accepted"}
 
