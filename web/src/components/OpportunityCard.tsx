@@ -10,11 +10,13 @@ export default function OpportunityCard({
   opportunity,
   saved,
   onToggleSave,
+  removeMode = false,
   children,
 }: {
   opportunity: Opportunity;
   saved: boolean;
   onToggleSave: () => void;
+  removeMode?: boolean;
   children?: React.ReactNode;
 }) {
   const accent = TYPE_COLORS[opportunity.type ?? ""] ?? "#f5c518";
@@ -108,12 +110,14 @@ export default function OpportunityCard({
         <button
           onClick={onToggleSave}
           className={`rounded-md px-3 py-1.5 text-sm font-medium ${
-            saved
-              ? "border border-emerald-600/50 bg-emerald-500/10 text-emerald-400"
-              : "border border-zinc-600 text-zinc-200 hover:border-[#f5c518] hover:text-[#f5c518]"
+            removeMode
+              ? "border border-red-600/50 text-red-400 hover:bg-red-500/10"
+              : saved
+                ? "border border-emerald-600/50 bg-emerald-500/10 text-emerald-400"
+                : "border border-zinc-600 text-zinc-200 hover:border-[#f5c518] hover:text-[#f5c518]"
           }`}
         >
-          {saved ? "✓ Saved" : "＋ Save"}
+          {removeMode ? "🗑 Remove" : saved ? "✓ Saved" : "＋ Save"}
         </button>
         {children}
       </div>

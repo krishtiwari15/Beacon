@@ -5,10 +5,27 @@ import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import AuthScreen from "@/components/AuthScreen";
 import Discover from "@/components/Discover";
+import Tracker from "@/components/Tracker";
+import Planner from "@/components/Planner";
+import Eligibility from "@/components/Eligibility";
+import ResumeAnalyzer from "@/components/ResumeAnalyzer";
+import Copilot from "@/components/Copilot";
+
+const TABS = [
+  { id: "discover", label: "🔍 Discover" },
+  { id: "tracker", label: "📋 My Applications" },
+  { id: "eligibility", label: "🤖 AI Eligibility" },
+  { id: "resume", label: "📄 Resume Analyzer" },
+  { id: "copilot", label: "🧭 Career Copilot" },
+  { id: "planner", label: "📅 Planner" },
+] as const;
+
+type TabId = (typeof TABS)[number]["id"];
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
+  const [tab, setTab] = useState<TabId>("discover");
 
   useEffect(() => {
     const supabase = createClient();
@@ -57,7 +74,29 @@ export default function Home() {
           🚪 Log out
         </button>
       </header>
-      <Discover user={user} />
+
+      <nav className="mx-auto mt-6 flex w-full max-w-5xl flex-wrap gap-2 px-6">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+              tab === t.id
+                ? "bg-[#f5c518] text-black"
+                : "border border-[#2a2a2a] text-zinc-300 hover:border-[#f5c518] hover:text-[#f5c518]"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </nav>
+
+      {tab === "discover" && <Discover user={user} />}
+      {tab === "tracker" && <Tracker user={user} />}
+      {tab === "eligibility" && <Eligibility />}
+      {tab === "resume" && <ResumeAnalyzer />}
+      {tab === "copilot" && <Copilot user={user} />}
+      {tab === "planner" && <Planner />}
     </div>
   );
 }
