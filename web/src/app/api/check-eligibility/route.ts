@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { askGemini } from "@/lib/gemini";
+import { askAI } from "@/lib/ai";
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
@@ -46,6 +46,6 @@ no markdown, no extra text, in exactly this format:
   "suggestions": ["short actionable suggestion 1"]
 }`;
 
-  const result = await askGemini(prompt);
+  const result = await askAI(prompt);
   return NextResponse.json(result);
 }

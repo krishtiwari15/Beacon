@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { askGemini } from "@/lib/gemini";
+import { askAI } from "@/lib/ai";
 
 export const runtime = "nodejs";
 
@@ -69,6 +69,6 @@ JSON object, no markdown, no extra text, in exactly this format:
   "suggestions": ["short actionable suggestion 1", "short actionable suggestion 2"]
 }`;
 
-  const result = await askGemini(prompt);
+  const result = await askAI(prompt);
   return NextResponse.json(result);
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { askGemini } from "@/lib/gemini";
+import { askAI } from "@/lib/ai";
 import type { Opportunity } from "@/lib/opportunities";
 
 export async function POST(req: NextRequest) {
@@ -44,7 +44,7 @@ JSON object, no markdown, no extra text, in exactly this format:
 }
 Order matches from best to worst fit. Only include opportunities from the list above.`;
 
-  const result = (await askGemini(prompt)) as { matches?: { id: number; match: number; reason: string }[]; error?: string };
+  const result = (await askAI(prompt)) as { matches?: { id: number; match: number; reason: string }[]; error?: string };
 
   if (result.error || !result.matches) {
     return NextResponse.json(result);
