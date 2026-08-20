@@ -48,14 +48,24 @@ export async function askAI(prompt: string): Promise<unknown> {
 
     if (!res.ok) {
       const body = await res.text();
+      console.error("[ai] Groq request failed:", res.status, body);
       return friendlyError(`${res.status} ${body}`);
     }
 
     const data = await res.json();
     const text: string | undefined = data?.choices?.[0]?.message?.content;
-    if (!text) return friendlyError("empty response");
-    return extractJson(text);
+    if (!text) {
+      console.error("[ai] Groq response had no content:", JSON.stringify(data));
+      return friendlyError("empty response");
+    }
+    try {
+      return extractJson(text);
+    } catch (parseErr) {
+      console.error("[ai] Failed to parse Groq output as JSON:", text, parseErr);
+      return friendlyError(parseErr instanceof Error ? parseErr.message : String(parseErr));
+    }
   } catch (e) {
+    console.error("[ai] Request to Groq threw:", e);
     return friendlyError(e instanceof Error ? e.message : String(e));
   }
 }
