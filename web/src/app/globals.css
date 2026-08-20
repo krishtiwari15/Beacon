@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+:root {
+  --beacon-bg: #0d0d0d;
+  --beacon-panel: #141414;
+  --beacon-border: #262626;
+  --beacon-amber: #f5c518;
+  --beacon-text: #e6e6e6;
+  --beacon-muted: #8a8a8a;
+}
+
+body {
+  background: var(--beacon-bg);
+  color: var(--beacon-text);
+}
