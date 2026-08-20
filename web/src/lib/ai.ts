@@ -2,7 +2,7 @@
 // completions API). Groq's free tier has much higher rate limits than
 // Gemini's, which is why this replaced the original Gemini-based ai.py.
 
-const MODEL_NAME = "llama-3.3-70b-versatile";
+const MODEL_NAME = "openai/gpt-oss-120b";
 
 function friendlyError(message: string): { error: string } {
   const msg = message.toLowerCase();
