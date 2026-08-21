@@ -50,6 +50,7 @@ export default function Tracker({ user }: { user: User }) {
   const [insights, setInsights] = useState<string[] | null>(null);
   const [insightsBusy, setInsightsBusy] = useState(false);
   const [insightsError, setInsightsError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -108,9 +109,15 @@ export default function Tracker({ user }: { user: User }) {
   }
 
   async function remove(savedId: number) {
+    setActionError(null);
+    const removed = rows.find((r) => r.id === savedId);
     setRows((prev) => prev.filter((r) => r.id !== savedId));
     const supabase = createClient();
-    await supabase.from("saved_opportunities").delete().eq("id", savedId);
+    const { error: deleteError } = await supabase.from("saved_opportunities").delete().eq("id", savedId);
+    if (deleteError) {
+      setActionError("Couldn't remove that — please try again.");
+      if (removed) setRows((prev) => [...prev, removed]);
+    }
   }
 
   const funnel: Record<string, number> = useMemo(() => {
@@ -203,6 +210,7 @@ export default function Tracker({ user }: { user: User }) {
       <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
         Application Analytics
       </div>
+      {actionError && <p className="mt-2 text-sm text-red-600">{actionError}</p>}
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
         {funnelStats.map(([num, label]) => (
@@ -229,9 +237,9 @@ export default function Tracker({ user }: { user: User }) {
           <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] uppercase">By category</div>
           <div className="mt-2 flex flex-col gap-1.5">
             {categoryStats.map((c) => (
-              <div key={c.category} className="flex items-center justify-between rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm backdrop-blur-md">
-                <span className="text-[var(--text)]">{c.category}</span>
-                <span className="text-[var(--text-muted)]">
+              <div key={c.category} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm backdrop-blur-md">
+                <span className="min-w-0 break-words text-[var(--text)]">{c.category}</span>
+                <span className="shrink-0 text-[var(--text-muted)]">
                   {c.applied} applied · {c.interviewRate}% interview rate
                 </span>
               </div>

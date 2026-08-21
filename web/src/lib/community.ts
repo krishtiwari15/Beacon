@@ -45,4 +45,6 @@ export type CommunityComment = {
 
 // Real, server-enforced anti-spam levers.
 export const MAX_POSTS_PER_HOUR = 5;
+export const MAX_COMMENTS_PER_HOUR = 20;
+export const MAX_TEAM_REQUESTS_PER_HOUR = 5;
 export const REPORTS_TO_AUTO_HIDE = 3;

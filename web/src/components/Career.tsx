@@ -91,6 +91,7 @@ export default function Career({ user }: { user: User }) {
 
   async function toggleTask(stageIdx: number, taskIdx: number) {
     if (!roadmap) return;
+    const previous = roadmap;
     const now = new Date().toISOString();
     const nextStages = roadmap.stages.map((stage, si) =>
       si !== stageIdx
@@ -108,10 +109,14 @@ export default function Career({ user }: { user: User }) {
     const next = { ...roadmap, stages: nextStages };
     setRoadmap(next);
     const supabase = createClient();
-    await supabase
+    const { error: updateError } = await supabase
       .from("roadmaps")
       .update({ stages: nextStages, updated_at: new Date().toISOString() })
       .eq("user_id", user.id);
+    if (updateError) {
+      setRoadmap(previous);
+      setError("Couldn't save that change — please try again.");
+    }
   }
 
   async function startOver() {
@@ -134,17 +139,18 @@ export default function Career({ user }: { user: User }) {
     const progress = roadmapProgress(roadmap);
     return (
       <div className="mx-auto w-full max-w-3xl px-6 py-8">
-        <div className="flex items-center justify-between gap-3">
-          <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0 break-words border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
             Goal: {roadmap.career_title}
           </div>
           <button
             onClick={startOver}
-            className="cursor-pointer rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
+            className="shrink-0 cursor-pointer rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
           >
             Choose a different career
           </button>
         </div>
+        {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
         <div className="mt-4 rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-4 backdrop-blur-md">
           <div className="flex items-center justify-between text-xs font-semibold tracking-wider text-[var(--text-muted)] uppercase">
@@ -257,8 +263,8 @@ export default function Career({ user }: { user: User }) {
           <div className="mt-4 flex flex-col gap-4">
             {careers.map((c) => (
               <div key={c.title} className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md">
-                <div className="flex items-center justify-between gap-3">
-                  <span className="font-serif text-lg font-semibold text-[var(--heading)]">{c.title}</span>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <span className="min-w-0 break-words font-serif text-lg font-semibold text-[var(--heading)]">{c.title}</span>
                   <span className="shrink-0 rounded-full border border-[var(--accent)] px-2.5 py-1 text-xs font-semibold text-[var(--accent)]">
                     {c.compatibility}% compatibility
                   </span>

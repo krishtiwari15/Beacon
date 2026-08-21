@@ -24,8 +24,8 @@ export default function SkillAssessment({ skill }: { skill: string }) {
         body: JSON.stringify({ skill }),
       });
       const data = await res.json();
-      if (data.error) {
-        setError(data.error);
+      if (data.error || !Array.isArray(data.questions) || data.questions.length === 0) {
+        setError(data.error ?? "The AI returned an unexpected response. Please try again.");
       } else {
         setQuestions(data.questions);
         setAnswers(new Array(data.questions.length).fill(-1));

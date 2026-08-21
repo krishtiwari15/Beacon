@@ -166,8 +166,9 @@ export default function CareerSimulation({ user }: { user: User }) {
 
   // In progress.
   if (sim && !sim.completed_at) {
-    const day = sim.days[dayIndex];
-    const isLastDay = dayIndex === sim.days.length - 1;
+    const days = Array.isArray(sim.days) ? sim.days : [];
+    const day = days[dayIndex];
+    const isLastDay = dayIndex === days.length - 1;
 
     if (!day) {
       return (
@@ -185,7 +186,7 @@ export default function CareerSimulation({ user }: { user: User }) {
         <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
           Career Simulation — {sim.career_title}
         </div>
-        <p className="mt-2 text-xs text-[var(--text-muted)]">Day {day.day} of {sim.days.length}</p>
+        <p className="mt-2 text-xs text-[var(--text-muted)]">Day {day.day} of {days.length}</p>
 
         <div className="mt-4 rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md">
           <div className="font-serif text-lg font-semibold text-[var(--heading)]">{day.title}</div>

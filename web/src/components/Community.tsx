@@ -25,6 +25,7 @@ export default function Community({ user }: { user: User }) {
   const [expandedPost, setExpandedPost] = useState<number | null>(null);
   const [comments, setComments] = useState<Record<number, CommunityComment[]>>({});
   const [commentDraft, setCommentDraft] = useState("");
+  const [commentError, setCommentError] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -179,8 +180,17 @@ export default function Community({ user }: { user: User }) {
 
   async function submitComment(postId: number) {
     if (!commentDraft.trim()) return;
-    const supabase = createClient();
-    await supabase.from("community_comments").insert({ post_id: postId, user_id: user.id, body: commentDraft.trim() });
+    const res = await fetch("/api/community/comments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ post_id: postId, body: commentDraft.trim() }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setCommentError(data.error ?? "Couldn't post your comment.");
+      return;
+    }
+    setCommentError(null);
     setCommentDraft("");
     loadComments(postId);
     setCommentCounts((prev) => ({ ...prev, [postId]: (prev[postId] ?? 0) + 1 }));
@@ -284,6 +294,7 @@ export default function Community({ user }: { user: User }) {
                         Send
                       </button>
                     </div>
+                    {commentError && <p className="mt-2 text-xs text-red-600">{commentError}</p>}
                   </div>
                 )}
               </div>

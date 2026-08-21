@@ -52,6 +52,8 @@ export default function Copilot({ user }: { user: User }) {
       } else {
         setMessages((prev) => [...prev, { role: "assistant", content: data.reply, at: new Date().toISOString() }]);
       }
+    } catch {
+      setError("⚠️ Couldn't reach the AI. Check your connection and try again.");
     } finally {
       setSending(false);
     }

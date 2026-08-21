@@ -44,6 +44,7 @@ export default function TeamFinder({ user }: { user: User }) {
   const [expressForm, setExpressForm] = useState<number | null>(null);
   const [interestMessage, setInterestMessage] = useState("");
   const [myInterestIds, setMyInterestIds] = useState<Set<number>>(new Set());
+  const [postError, setPostError] = useState<string | null>(null);
 
   async function load() {
     const supabase = createClient();
@@ -69,16 +70,24 @@ export default function TeamFinder({ user }: { user: User }) {
     e.preventDefault();
     if (!title.trim()) return;
     setPosting(true);
-    const supabase = createClient();
-    await supabase.from("team_requests").insert({
-      user_id: user.id,
-      title: title.trim(),
-      description: description.trim() || null,
-      purpose,
-      looking_for: lookingFor.split(",").map((s) => s.trim()).filter(Boolean),
-      skills_offered: skillsOffered.split(",").map((s) => s.trim()).filter(Boolean),
+    setPostError(null);
+    const res = await fetch("/api/team-requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: title.trim(),
+        description: description.trim() || null,
+        purpose,
+        looking_for: lookingFor.split(",").map((s) => s.trim()).filter(Boolean),
+        skills_offered: skillsOffered.split(",").map((s) => s.trim()).filter(Boolean),
+      }),
     });
+    const data = await res.json();
     setPosting(false);
+    if (!res.ok) {
+      setPostError(data.error ?? "Couldn't post your request.");
+      return;
+    }
     setTitle("");
     setDescription("");
     setLookingFor("");
@@ -155,6 +164,7 @@ export default function TeamFinder({ user }: { user: User }) {
           <button type="submit" disabled={posting} className="h-[44px] cursor-pointer rounded-[12px] bg-[var(--accent)] text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2">
             {posting ? "Posting…" : "Post request"}
           </button>
+          {postError && <p className="text-sm text-red-600 sm:col-span-2">{postError}</p>}
         </form>
       )}
 
