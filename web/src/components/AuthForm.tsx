@@ -8,7 +8,7 @@ type Tab = "login" | "signup" | "forgot";
 const inputClass =
   "rounded-[12px] border border-[var(--border)] bg-black/[0.02] px-3 py-2.5 text-sm text-[var(--text)] outline-none transition-colors duration-200 placeholder:text-[var(--text-muted)]/60 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15";
 
-export default function AuthForm({ googleRedirectPath = "/" }: { googleRedirectPath?: string }) {
+export default function AuthForm() {
   const [tab, setTab] = useState<Tab>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -99,7 +99,7 @@ export default function AuthForm({ googleRedirectPath = "/" }: { googleRedirectP
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin + googleRedirectPath },
+      options: { redirectTo: window.location.origin },
     });
     if (error) setError(error.message);
   }
