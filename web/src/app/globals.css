@@ -16,6 +16,9 @@
   --accent: #062c21;
   --accent-hover: #0b3d2c;
   --accent-soft: #0f6b4f;
+  --cta: var(--accent);
+  --cta-hover: var(--accent-hover);
+  --heading-accent: var(--accent-soft);
 }
 
 body {
