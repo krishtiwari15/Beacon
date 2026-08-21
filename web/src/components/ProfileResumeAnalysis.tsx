@@ -82,6 +82,7 @@ export default function ProfileResumeAnalysis({ user }: { user: User }) {
       full_name: current?.full_name ?? null,
       education: current?.education || result.education || null,
       skills: mergedSkills,
+      projects: current?.projects ?? [],
       interests: current?.interests || (result.career_interests ?? []).join(", ") || null,
       career_goal: current?.career_goal ?? null,
       location: current?.location ?? null,

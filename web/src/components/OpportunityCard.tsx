@@ -10,6 +10,7 @@ import {
 } from "@/lib/opportunities";
 import { track } from "@/lib/track";
 import { computeTrustScore } from "@/lib/trustScore";
+import OpportunityIntelligence from "@/components/OpportunityIntelligence";
 
 function scoreColor(score: number): string {
   if (score >= 75) return "#2f8a52";
@@ -45,6 +46,7 @@ export default function OpportunityCard({
   children?: React.ReactNode;
 }) {
   const [showIntel, setShowIntel] = useState(false);
+  const [strategistOpen, setStrategistOpen] = useState(false);
   const accent = TYPE_COLORS[opportunity.type ?? ""] ?? "#336443";
   const diffColor = opportunity.difficulty ? DIFF_COLORS[opportunity.difficulty] ?? "#999" : null;
   const deadline = deadlineLabel(opportunity.deadline);
@@ -84,14 +86,22 @@ export default function OpportunityCard({
         {opportunity.organization} · {opportunity.category}
       </div>
 
-      {hasIntel && (
+      <div className="mt-2 flex flex-wrap items-center gap-3">
+        {hasIntel && (
+          <button
+            onClick={() => setShowIntel((v) => !v)}
+            className="cursor-pointer text-xs font-medium text-[var(--accent)] hover:underline"
+          >
+            {showIntel ? "Hide" : "Why these scores?"}
+          </button>
+        )}
         <button
-          onClick={() => setShowIntel((v) => !v)}
-          className="mt-2 cursor-pointer text-xs font-medium text-[var(--accent)] hover:underline"
+          onClick={() => setStrategistOpen(true)}
+          className="cursor-pointer text-xs font-medium text-[var(--accent)] hover:underline"
         >
-          {showIntel ? "Hide" : "Why these scores?"}
+          Opportunity Intelligence →
         </button>
-      )}
+      </div>
       {showIntel && (
         <div className="mt-2 rounded-[12px] border border-[var(--border)] bg-black/[0.015] p-3 text-xs">
           <div className="font-semibold text-[var(--text)]">
@@ -200,6 +210,13 @@ export default function OpportunityCard({
         </button>
         {children}
       </div>
+
+      <OpportunityIntelligence
+        opportunity={opportunity}
+        matchScore={matchScore}
+        open={strategistOpen}
+        onClose={() => setStrategistOpen(false)}
+      />
     </div>
   );
 }

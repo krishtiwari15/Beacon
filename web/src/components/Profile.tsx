@@ -12,6 +12,7 @@ const EMPTY = {
   full_name: "",
   education: "",
   skills: "",
+  projects: "",
   interests: "",
   career_goal: "",
   location: "",
@@ -65,6 +66,7 @@ export default function Profile({ user }: { user: User }) {
             full_name: row.full_name ?? "",
             education: row.education ?? "",
             skills: (row.skills ?? []).join(", "),
+            projects: (row.projects ?? []).join(", "),
             interests: row.interests ?? "",
             career_goal: row.career_goal ?? "",
             location: row.location ?? "",
@@ -103,6 +105,10 @@ export default function Profile({ user }: { user: User }) {
       full_name: form.full_name || null,
       education: form.education || null,
       skills: form.skills
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+      projects: form.projects
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
@@ -147,6 +153,7 @@ export default function Profile({ user }: { user: User }) {
         <input value={form.education} onChange={(e) => set("education", e.target.value)} placeholder="Education / Degree, e.g. BCA, 2nd year" className={inputClass} />
         <input value={form.cgpa} onChange={(e) => set("cgpa", e.target.value)} placeholder="CGPA / GPA, e.g. 8.5" className={inputClass} />
         <input value={form.skills} onChange={(e) => set("skills", e.target.value)} placeholder="Skills, comma-separated, e.g. python, sql, excel" className={`${inputClass} sm:col-span-2`} />
+        <input value={form.projects} onChange={(e) => set("projects", e.target.value)} placeholder="Projects you've built, comma-separated, e.g. Sales dashboard, Portfolio site" className={`${inputClass} sm:col-span-2`} />
         <input value={form.interests} onChange={(e) => set("interests", e.target.value)} placeholder="Interests, e.g. AI, web dev, data analytics" className={inputClass} />
         <input value={form.career_goal} onChange={(e) => set("career_goal", e.target.value)} placeholder="Career goal, e.g. land a remote internship" className={inputClass} />
         <input value={form.country} onChange={(e) => set("country", e.target.value)} placeholder="Country, e.g. India" className={inputClass} />
