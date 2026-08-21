@@ -2,9 +2,7 @@
 // opportunities into per-opportunity match scores (0-100). Batches large
 // opportunity lists into several AI calls (sequential, to stay within
 // Groq's rate limits) so every opportunity gets scored, not just the
-// first chunk. Kept separate from any route/UI code so both
-// /api/match-scores (bulk, cached) and /api/recommend (Copilot's top-5)
-// can share the same prompt shape without duplicating it.
+// first chunk. Used by /api/match-scores.
 
 import { askAI } from "@/lib/ai";
 import type { Opportunity } from "@/lib/opportunities";
