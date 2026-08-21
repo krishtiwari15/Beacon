@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import Hero from "@/components/Hero";
+import DualVideoBg from "@/components/DualVideoBg";
 import Discover from "@/components/Discover";
 import Tracker from "@/components/Tracker";
 import Planner from "@/components/Planner";
@@ -21,6 +22,8 @@ const TABS = [
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
+
+const BG_VIDEO = "https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature_peace.mp4";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -60,7 +63,10 @@ export default function Home() {
   const name = (user.user_metadata?.name as string | undefined) || user.email || "Explorer";
 
   return (
-    <div className="flex min-h-screen flex-1 flex-col bg-[var(--bg)] md:flex-row">
+    <div className="relative flex min-h-screen flex-1 flex-col md:flex-row">
+      <DualVideoBg src={BG_VIDEO} className="fixed inset-0 -z-10 h-full w-full" />
+      <div className="fixed inset-0 -z-10 bg-gradient-to-b from-white/70 via-white/60 to-white/70" />
+
       {/* Sidebar (desktop) */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] backdrop-blur-md md:flex">
         <div className="border-b border-[var(--border)] px-5 py-6">
