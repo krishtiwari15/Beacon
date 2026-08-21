@@ -1,4 +1,4 @@
-export type RoadmapTask = { text: string; done: boolean };
+export type RoadmapTask = { text: string; done: boolean; done_at?: string };
 export type RoadmapStageRow = { title: string; tasks: RoadmapTask[] };
 
 export type Roadmap = {

@@ -91,10 +91,19 @@ export default function Career({ user }: { user: User }) {
 
   async function toggleTask(stageIdx: number, taskIdx: number) {
     if (!roadmap) return;
+    const now = new Date().toISOString();
     const nextStages = roadmap.stages.map((stage, si) =>
       si !== stageIdx
         ? stage
-        : { ...stage, tasks: stage.tasks.map((t, ti) => (ti === taskIdx ? { ...t, done: !t.done } : t)) },
+        : {
+            ...stage,
+            tasks: stage.tasks.map((t, ti) =>
+              // done_at makes completions genuinely dateable for the Weekly
+              // Career Review — never set for un-checking, only when a task
+              // is actually marked done.
+              ti === taskIdx ? { ...t, done: !t.done, done_at: !t.done ? now : undefined } : t,
+            ),
+          },
     );
     const next = { ...roadmap, stages: nextStages };
     setRoadmap(next);
