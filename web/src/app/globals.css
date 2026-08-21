@@ -87,6 +87,11 @@ body {
   }
 }
 
+.video-layer {
+  transition: opacity 2000ms ease-in-out;
+  will-change: opacity;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

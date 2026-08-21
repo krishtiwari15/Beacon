@@ -5,10 +5,9 @@ import { LogIn, UserPlus, Sparkles, Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Animate from "@/components/Animate";
 import AuthModal from "@/components/AuthModal";
-import BoomerangVideoBg from "@/components/BoomerangVideoBg";
+import DualVideoBg from "@/components/DualVideoBg";
 
-const BG_VIDEO =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260511_131941_d136af49-e243-493a-be14-6ff3f24e09e6.mp4";
+const BG_VIDEO = "https://strvid.nyc3.cdn.digitaloceanspaces.com/motionsite/nature_peace.mp4";
 
 const NAV_LINKS = [
   { label: "Discover" },
@@ -61,7 +60,7 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen w-full overflow-hidden sm:h-screen">
-      <BoomerangVideoBg src={BG_VIDEO} className="absolute inset-0 h-full w-full" />
+      <DualVideoBg src={BG_VIDEO} className="absolute inset-0 h-full w-full" />
       <Nav onOpenAuth={() => setAuthOpen(true)} />
 
       <div className="relative z-10 flex flex-col items-center px-4 pt-24 text-center sm:px-6 sm:pt-28 md:pt-32">
