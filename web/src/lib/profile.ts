@@ -12,6 +12,7 @@ export type Profile = {
   cgpa: string | null;
   country: string | null;
   public_profile: boolean;
+  research_interests: string | null;
   alert_preferences: {
     high_match?: boolean;
     deadline?: boolean;

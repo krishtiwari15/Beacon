@@ -17,6 +17,7 @@ import {
   Users,
   Hammer,
   FlaskConical,
+  Microscope,
   LogOut,
   Menu,
   X,
@@ -37,6 +38,7 @@ import GlobalMap from "@/components/GlobalMap";
 import Mentors from "@/components/Mentors";
 import Projects from "@/components/Projects";
 import CareerSimulation from "@/components/CareerSimulation";
+import ResearchHub from "@/components/ResearchHub";
 
 // Flat tab list (single source of truth for TabId), then grouped separately
 // for nav display (§19: "avoid overcrowding, use dropdowns or grouped
@@ -45,6 +47,7 @@ const TABS = [
   { id: "home", label: "Home", icon: LayoutDashboard },
   { id: "discover", label: "Discover", icon: Compass },
   { id: "map", label: "Global Map", icon: Globe2 },
+  { id: "research", label: "Research", icon: Microscope },
   { id: "planner", label: "Planner", icon: CalendarClock },
   { id: "tracker", label: "My Applications", icon: ClipboardList },
   { id: "career", label: "Career & Roadmap", icon: Route },
@@ -62,7 +65,7 @@ type TabId = (typeof TABS)[number]["id"];
 
 const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
   { label: null, ids: ["home"] },
-  { label: "Opportunities", ids: ["discover", "map", "planner", "tracker"] },
+  { label: "Opportunities", ids: ["discover", "map", "research", "planner", "tracker"] },
   { label: "Career", ids: ["career", "simulation", "projects", "skills", "eligibility", "resume", "mentors"] },
   { label: "AI & You", ids: ["copilot", "profile"] },
 ];
@@ -272,6 +275,7 @@ export default function Home() {
         {tab === "home" && <DashboardHome user={user} />}
         {tab === "discover" && <Discover user={user} />}
         {tab === "map" && <GlobalMap />}
+        {tab === "research" && <ResearchHub user={user} />}
         {tab === "tracker" && <Tracker user={user} />}
         {tab === "career" && <Career user={user} />}
         {tab === "simulation" && <CareerSimulation user={user} />}
