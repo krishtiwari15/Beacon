@@ -41,6 +41,9 @@ export default function Profile({ user }: { user: User }) {
   const [clearing, setClearing] = useState(false);
   const [alertPrefs, setAlertPrefs] = useState<AlertPreferences>(DEFAULT_ALERT_PREFERENCES);
   const [savingPrefs, setSavingPrefs] = useState(false);
+  const [publicProfile, setPublicProfile] = useState(false);
+  const [savingPublic, setSavingPublic] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   function loadInteractions() {
     const supabase = createClient();
@@ -79,12 +82,29 @@ export default function Profile({ user }: { user: User }) {
             country: row.country ?? "",
           });
           setAlertPrefs({ ...DEFAULT_ALERT_PREFERENCES, ...(row.alert_preferences ?? {}) });
+          setPublicProfile(row.public_profile ?? false);
         }
         setLoading(false);
       });
     loadInteractions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
+
+  async function togglePublicProfile() {
+    const next = !publicProfile;
+    setPublicProfile(next);
+    setSavingPublic(true);
+    const supabase = createClient();
+    await supabase.from("profiles").upsert({ user_id: user.id, public_profile: next });
+    setSavingPublic(false);
+  }
+
+  function copyProfileLink() {
+    navigator.clipboard.writeText(`${window.location.origin}/profile/${user.id}`).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
 
   async function toggleAlertPref(key: keyof AlertPreferences) {
     const next = { ...alertPrefs, [key]: !alertPrefs[key] };
@@ -193,6 +213,37 @@ export default function Profile({ user }: { user: User }) {
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {saved && <p className="mt-4 text-sm text-emerald-700">✓ Profile saved.</p>}
+
+      <div className="mt-8">
+        <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
+          Proof-of-Skill Public Profile
+        </div>
+        <p className="mt-2 text-sm text-[var(--text-muted)]">
+          Share an evidence-backed view of your skills — off by default. When enabled, your name, education,
+          career goal, skills with real evidence, and projects become visible to anyone with the link. Age,
+          CGPA, and country stay private either way.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <label className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text)]">
+            <input
+              type="checkbox"
+              checked={publicProfile}
+              onChange={togglePublicProfile}
+              className="h-4 w-4 cursor-pointer accent-[var(--accent)]"
+            />
+            Make my profile public
+            {savingPublic && " (saving…)"}
+          </label>
+          {publicProfile && (
+            <button
+              onClick={copyProfileLink}
+              className="cursor-pointer rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text)] transition-colors duration-200 hover:border-[var(--accent)]"
+            >
+              {copied ? "✓ Copied!" : "Copy shareable link"}
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="mt-8">
         <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
