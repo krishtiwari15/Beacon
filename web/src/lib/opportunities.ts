@@ -13,6 +13,9 @@ export type Opportunity = {
   difficulty: string | null;
   work_mode: string | null;
   logo_url: string | null;
+  quality_score: number | null;
+  quality_summary: string | null;
+  quality_reasons: string[] | null;
 };
 
 export type SavedStatus = "saved" | "applied" | "interview" | "rejected" | "accepted";

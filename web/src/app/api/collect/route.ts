@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { computeQualityScores } from "@/lib/services/opportunityQuality";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -238,7 +239,32 @@ export async function GET(req: NextRequest) {
   });
 
   if (deduped.length > 0) {
-    const { error } = await supabase.from("opportunities").insert(deduped);
+    // Quality Score is opportunity-intrinsic (not per-student), so it's
+    // computed once here at collection time and cached on the row —
+    // never recomputed per viewer.
+    const qualityResults = await computeQualityScores(
+      deduped.map((o) => ({
+        title: o.title,
+        type: o.type,
+        category: o.category,
+        organization: o.organization,
+        eligibility: o.eligibility,
+        stipend: o.stipend,
+        difficulty: o.difficulty,
+        work_mode: o.work_mode,
+        tags: o.tags,
+      })),
+    );
+    const qualityByTitle = new Map(qualityResults.map((r) => [r.title, r]));
+    const now = new Date().toISOString();
+    const withQuality = deduped.map((o) => {
+      const q = qualityByTitle.get(o.title);
+      return q
+        ? { ...o, quality_score: q.score, quality_summary: q.summary, quality_reasons: q.reasons, quality_computed_at: now }
+        : o;
+    });
+
+    const { error } = await supabase.from("opportunities").insert(withQuality);
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 

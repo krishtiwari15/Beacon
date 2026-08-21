@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import {
   DIFF_COLORS,
   Opportunity,
@@ -6,11 +9,24 @@ import {
   typeLabel,
 } from "@/lib/opportunities";
 import { track } from "@/lib/track";
+import { computeTrustScore } from "@/lib/trustScore";
 
-function matchColor(score: number): string {
+function scoreColor(score: number): string {
   if (score >= 75) return "#2f8a52";
   if (score >= 50) return "#b58a1f";
   return "#8a8a86";
+}
+
+function ScoreBadge({ label, score, title }: { label: string; score: number; title: string }) {
+  return (
+    <span
+      className="shrink-0 rounded-full border px-2 py-1 text-[11px] font-semibold whitespace-nowrap"
+      style={{ borderColor: scoreColor(score), color: scoreColor(score) }}
+      title={title}
+    >
+      {score}% {label}
+    </span>
+  );
 }
 
 export default function OpportunityCard({
@@ -28,11 +44,14 @@ export default function OpportunityCard({
   matchScore?: number;
   children?: React.ReactNode;
 }) {
+  const [showIntel, setShowIntel] = useState(false);
   const accent = TYPE_COLORS[opportunity.type ?? ""] ?? "#336443";
   const diffColor = opportunity.difficulty ? DIFF_COLORS[opportunity.difficulty] ?? "#999" : null;
   const deadline = deadlineLabel(opportunity.deadline);
   const stipend = opportunity.stipend || "Not specified";
   const unpaid = /unpaid|volunteer|not specified|free/i.test(stipend);
+  const trust = computeTrustScore(opportunity);
+  const hasIntel = matchScore !== undefined || opportunity.quality_score !== null;
 
   return (
     <div className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)]/30 hover:shadow-lg">
@@ -51,19 +70,57 @@ export default function OpportunityCard({
           ) : null}
           <span className="font-serif text-lg font-semibold text-[var(--heading)]">{opportunity.title}</span>
         </div>
-        {matchScore !== undefined && (
-          <span
-            className="shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap"
-            style={{ borderColor: matchColor(matchScore), color: matchColor(matchScore) }}
-            title="AI-estimated fit based on your saved profile"
-          >
-            {matchScore}% Match
-          </span>
-        )}
+        <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+          {matchScore !== undefined && (
+            <ScoreBadge label="Match" score={matchScore} title="AI-estimated fit based on your saved profile" />
+          )}
+          <ScoreBadge label="Trust" score={trust.score} title={`${trust.tier} — based on verifiable listing details, not AI guesswork`} />
+          {opportunity.quality_score !== null && (
+            <ScoreBadge label="Quality" score={opportunity.quality_score} title="AI assessment of the opportunity's intrinsic value" />
+          )}
+        </div>
       </div>
       <div className="mt-1 text-xs text-[var(--text-muted)]">
         {opportunity.organization} · {opportunity.category}
       </div>
+
+      {hasIntel && (
+        <button
+          onClick={() => setShowIntel((v) => !v)}
+          className="mt-2 cursor-pointer text-xs font-medium text-[var(--accent)] hover:underline"
+        >
+          {showIntel ? "Hide" : "Why these scores?"}
+        </button>
+      )}
+      {showIntel && (
+        <div className="mt-2 rounded-[12px] border border-[var(--border)] bg-black/[0.015] p-3 text-xs">
+          <div className="font-semibold text-[var(--text)]">
+            Trust: {trust.score}% — {trust.tier}
+          </div>
+          <ul className="mt-1 flex flex-col gap-0.5">
+            {trust.checks.map((c) => (
+              <li key={c.label} className={c.passed ? "text-emerald-700" : "text-[var(--text-muted)]"}>
+                {c.passed ? "✓" : "○"} {c.label}
+                {!c.passed && <span className="italic"> — could not verify</span>}
+              </li>
+            ))}
+          </ul>
+          {opportunity.quality_score !== null && (
+            <>
+              <div className="mt-3 font-semibold text-[var(--text)]">Quality: {opportunity.quality_score}%</div>
+              {opportunity.quality_summary && <p className="mt-1 text-[var(--text-muted)]">{opportunity.quality_summary}</p>}
+              {!!opportunity.quality_reasons?.length && (
+                <ul className="mt-1 flex flex-col gap-0.5 text-[var(--text-muted)]">
+                  {opportunity.quality_reasons.map((r, i) => (
+                    <li key={i}>• {r}</li>
+                  ))}
+                </ul>
+              )}
+              <p className="mt-1 text-[10px] text-[var(--text-muted)] italic">AI-generated assessment, not a verified fact.</p>
+            </>
+          )}
+        </div>
+      )}
 
       <div className="mt-2 flex flex-wrap gap-2">
         <span
