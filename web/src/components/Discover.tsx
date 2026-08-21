@@ -10,6 +10,9 @@ import CardSkeleton from "@/components/CardSkeleton";
 export default function Discover({ user }: { user: User }) {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [matchScores, setMatchScores] = useState<Map<number, number>>(new Map());
+  const [matching, setMatching] = useState(false);
+  const [matchError, setMatchError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +45,33 @@ export default function Discover({ user }: { user: User }) {
     }
 
     load();
+
+    // Cheap DB read — cached scores, no AI call on mount.
+    fetch("/api/match-scores")
+      .then((r) => r.json())
+      .then((data) => {
+        const rows = (data.scores ?? []) as { opportunity_id: number; score: number }[];
+        setMatchScores(new Map(rows.map((r) => [r.opportunity_id, r.score])));
+      })
+      .catch(() => {});
   }, [user.id]);
+
+  async function refreshMatches() {
+    setMatching(true);
+    setMatchError(null);
+    try {
+      const res = await fetch("/api/match-scores", { method: "POST" });
+      const data = await res.json();
+      if (data.error) {
+        setMatchError(data.error);
+      } else {
+        const rows = (data.scores ?? []) as { id: number; score: number }[];
+        setMatchScores(new Map(rows.map((r) => [r.id, r.score])));
+      }
+    } finally {
+      setMatching(false);
+    }
+  }
 
   async function toggleSave(opportunityId: number) {
     const supabase = createClient();
@@ -147,9 +176,19 @@ export default function Discover({ user }: { user: User }) {
         </select>
       </div>
 
-      <div className="mt-5 border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
-        {filtered.length} {filtered.length === 1 ? "opportunity" : "opportunities"} found
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+        <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
+          {filtered.length} {filtered.length === 1 ? "opportunity" : "opportunities"} found
+        </div>
+        <button
+          onClick={refreshMatches}
+          disabled={matching}
+          className="cursor-pointer rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text)] transition-colors duration-200 hover:border-[var(--accent)] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {matching ? "Scoring your matches…" : matchScores.size > 0 ? "↻ Refresh match scores" : "✨ Get my match scores"}
+        </button>
       </div>
+      {matchError && <p className="mt-2 text-xs text-red-600">{matchError}</p>}
 
       <div className="mt-4 flex flex-col gap-4">
         {filtered.length === 0 ? (
@@ -163,6 +202,7 @@ export default function Discover({ user }: { user: User }) {
               opportunity={o}
               saved={savedIds.has(o.id)}
               onToggleSave={() => toggleSave(o.id)}
+              matchScore={matchScores.get(o.id)}
             />
           ))
         )}

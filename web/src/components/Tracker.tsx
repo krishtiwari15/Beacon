@@ -15,6 +15,7 @@ type SavedRow = {
 
 export default function Tracker({ user }: { user: User }) {
   const [rows, setRows] = useState<SavedRow[]>([]);
+  const [matchScores, setMatchScores] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,6 +39,14 @@ export default function Tracker({ user }: { user: User }) {
 
   useEffect(() => {
     load();
+    // Cheap cached read — no AI call. Refreshed from the Discover tab.
+    fetch("/api/match-scores")
+      .then((r) => r.json())
+      .then((data) => {
+        const scoreRows = (data.scores ?? []) as { opportunity_id: number; score: number }[];
+        setMatchScores(new Map(scoreRows.map((r) => [r.opportunity_id, r.score])));
+      })
+      .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
@@ -99,7 +108,14 @@ export default function Tracker({ user }: { user: User }) {
 
       <div className="mt-4 flex flex-col gap-4">
         {rows.map((r) => (
-          <OpportunityCard key={r.id} opportunity={r.opportunity} saved removeMode onToggleSave={() => remove(r.id)}>
+          <OpportunityCard
+            key={r.id}
+            opportunity={r.opportunity}
+            saved
+            removeMode
+            onToggleSave={() => remove(r.id)}
+            matchScore={matchScores.get(r.opportunity.id)}
+          >
             <select
               value={r.status}
               onChange={(e) => updateStatus(r.id, e.target.value as SavedStatus)}

@@ -6,17 +6,25 @@ import {
   typeLabel,
 } from "@/lib/opportunities";
 
+function matchColor(score: number): string {
+  if (score >= 75) return "#2f8a52";
+  if (score >= 50) return "#b58a1f";
+  return "#8a8a86";
+}
+
 export default function OpportunityCard({
   opportunity,
   saved,
   onToggleSave,
   removeMode = false,
+  matchScore,
   children,
 }: {
   opportunity: Opportunity;
   saved: boolean;
   onToggleSave: () => void;
   removeMode?: boolean;
+  matchScore?: number;
   children?: React.ReactNode;
 }) {
   const accent = TYPE_COLORS[opportunity.type ?? ""] ?? "#336443";
@@ -27,19 +35,30 @@ export default function OpportunityCard({
 
   return (
     <div className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)]/30 hover:shadow-lg">
-      <div className="flex items-center gap-3">
-        {opportunity.logo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={opportunity.logo_url}
-            alt=""
-            className="h-9 w-9 rounded-md border border-[var(--border)] bg-white object-contain p-1"
-            onError={(e) => {
-              (e.target as HTMLImageElement).style.display = "none";
-            }}
-          />
-        ) : null}
-        <span className="font-serif text-lg font-semibold text-[var(--heading)]">{opportunity.title}</span>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          {opportunity.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={opportunity.logo_url}
+              alt=""
+              className="h-9 w-9 rounded-md border border-[var(--border)] bg-white object-contain p-1"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          ) : null}
+          <span className="font-serif text-lg font-semibold text-[var(--heading)]">{opportunity.title}</span>
+        </div>
+        {matchScore !== undefined && (
+          <span
+            className="shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold whitespace-nowrap"
+            style={{ borderColor: matchColor(matchScore), color: matchColor(matchScore) }}
+            title="AI-estimated fit based on your saved profile"
+          >
+            {matchScore}% Match
+          </span>
+        )}
       </div>
       <div className="mt-1 text-xs text-[var(--text-muted)]">
         {opportunity.organization} · {opportunity.category}
