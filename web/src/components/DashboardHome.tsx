@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Opportunity, daysUntil } from "@/lib/opportunities";
 import { Profile } from "@/lib/profile";
 import { Roadmap, roadmapProgress } from "@/lib/roadmap";
+import { computeCareerHealth } from "@/lib/careerHealth";
 import OpportunityCard from "@/components/OpportunityCard";
 import CardSkeleton from "@/components/CardSkeleton";
 
@@ -32,6 +33,7 @@ export default function DashboardHome({ user }: { user: User }) {
   const [savedRows, setSavedRows] = useState<SavedRow[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [matchScores, setMatchScores] = useState<Map<number, number>>(new Map());
+  const [hasMentorListing, setHasMentorListing] = useState(false);
 
   const name = (user.user_metadata?.name as string | undefined) || user.email?.split("@")[0] || "there";
 
@@ -46,13 +48,15 @@ export default function DashboardHome({ user }: { user: User }) {
         .eq("user_id", user.id),
       supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }),
       fetch("/api/match-scores").then((r) => r.json()),
-    ]).then(([profileRes, roadmapRes, savedRes, oppsRes, matchesJson]) => {
+      supabase.from("mentors").select("user_id").eq("user_id", user.id).maybeSingle(),
+    ]).then(([profileRes, roadmapRes, savedRes, oppsRes, matchesJson, mentorRes]) => {
       setProfile((profileRes.data as Profile) ?? null);
       setRoadmap((roadmapRes.data as Roadmap) ?? null);
       setSavedRows((savedRes.data as unknown as SavedRow[]) ?? []);
       setOpportunities((oppsRes.data as Opportunity[]) ?? []);
       const rows = (matchesJson.scores ?? []) as { opportunity_id: number; score: number }[];
       setMatchScores(new Map(rows.map((r) => [r.opportunity_id, r.score])));
+      setHasMentorListing(!!mentorRes.data);
       setLoading(false);
     });
   }, [user.id]);
@@ -88,6 +92,7 @@ export default function DashboardHome({ user }: { user: User }) {
   const applied = savedRows.filter((r) => r.status !== "saved").length;
   const interviews = savedRows.filter((r) => ["interview", "shortlisted", "accepted"].includes(r.status)).length;
   const accepted = savedRows.filter((r) => r.status === "accepted").length;
+  const careerHealth = computeCareerHealth(profile, roadmap, applied, interviews, hasMentorListing);
 
   const nextActions: string[] = [];
   if (strength < 100) nextActions.push("Finish filling out your Profile for better match scores.");
@@ -137,6 +142,31 @@ export default function DashboardHome({ user }: { user: User }) {
         <div className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-4 backdrop-blur-md">
           <div className="text-[11px] font-semibold tracking-wider text-[var(--text-muted)] uppercase">Roadmap Progress</div>
           <div className="mt-1 text-2xl font-semibold text-[var(--text)]">{roadmap ? `${progress}%` : "—"}</div>
+        </div>
+      </div>
+
+      <div className="mt-8">
+        <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
+          Career Health
+        </div>
+        <div className="mt-4 flex flex-col gap-4 rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md sm:flex-row sm:items-center">
+          <div className="flex shrink-0 flex-col items-center justify-center">
+            <div className="text-4xl font-semibold text-[var(--text)]">{careerHealth.overall}</div>
+            <div className="text-[10px] tracking-wider text-[var(--text-muted)] uppercase">/ 100</div>
+          </div>
+          <div className="flex-1">
+            <div className="grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2">
+              {careerHealth.dimensions.map((d) => (
+                <div key={d.label} className="flex items-center justify-between text-sm">
+                  <span className="text-[var(--text-muted)]">{d.label}</span>
+                  <span className="font-medium text-[var(--text)]">{d.score}</span>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs text-[var(--text-muted)]">
+              💡 Your biggest improvement opportunity is <b>{careerHealth.drivingFactor}</b>.
+            </p>
+          </div>
         </div>
       </div>
 
