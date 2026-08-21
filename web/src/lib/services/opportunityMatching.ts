@@ -1,17 +1,19 @@
 // OpportunityMatchingService — turns a student profile + a list of
-// opportunities into per-opportunity match scores (0-100) via one AI call.
-// Kept separate from any route/UI code so both /api/match-scores (bulk,
-// cached) and /api/recommend (Copilot's top-5) can share the same prompt
-// shape without duplicating it.
+// opportunities into per-opportunity match scores (0-100). Batches large
+// opportunity lists into several AI calls (sequential, to stay within
+// Groq's rate limits) so every opportunity gets scored, not just the
+// first chunk. Kept separate from any route/UI code so both
+// /api/match-scores (bulk, cached) and /api/recommend (Copilot's top-5)
+// can share the same prompt shape without duplicating it.
 
 import { askAI } from "@/lib/ai";
 import type { Opportunity } from "@/lib/opportunities";
 import type { Profile } from "@/lib/profile";
 
 // A single AI call reliably scores about this many opportunities before
-// output quality/truncation risk goes up. If there are more open
-// opportunities than this, only the soonest-deadline ones are scored.
-const MAX_OPPORTUNITIES_PER_CALL = 60;
+// output quality/truncation risk goes up — larger lists are split into
+// batches of this size and scored with multiple sequential calls.
+const BATCH_SIZE = 50;
 
 export type MatchScore = { id: number; score: number };
 
@@ -30,14 +32,11 @@ function profileToText(profile: Partial<Profile> | null): string {
   return lines.length ? lines.join("\n") : "(no saved profile — use general best judgment)";
 }
 
-export async function computeMatchScores(
+async function scoreBatch(
   profile: Partial<Profile> | null,
-  opportunities: Opportunity[],
+  batch: Opportunity[],
 ): Promise<{ scores: MatchScore[]; error?: string }> {
-  if (opportunities.length === 0) return { scores: [] };
-
-  const capped = opportunities.slice(0, MAX_OPPORTUNITIES_PER_CALL);
-  const compact = capped.map((o) => ({
+  const compact = batch.map((o) => ({
     id: o.id,
     title: o.title,
     type: o.type,
@@ -71,9 +70,37 @@ Include every opportunity id from the list exactly once.`;
     return { scores: [], error: result.error ?? "AI returned no scores." };
   }
 
-  const validIds = new Set(capped.map((o) => o.id));
+  const validIds = new Set(batch.map((o) => o.id));
   const scores = result.scores.filter(
     (s) => validIds.has(s.id) && Number.isFinite(s.score) && s.score >= 0 && s.score <= 100,
   );
   return { scores };
+}
+
+export async function computeMatchScores(
+  profile: Partial<Profile> | null,
+  opportunities: Opportunity[],
+): Promise<{ scores: MatchScore[]; error?: string }> {
+  if (opportunities.length === 0) return { scores: [] };
+
+  const batches: Opportunity[][] = [];
+  for (let i = 0; i < opportunities.length; i += BATCH_SIZE) {
+    batches.push(opportunities.slice(i, i + BATCH_SIZE));
+  }
+
+  const allScores: MatchScore[] = [];
+  let firstError: string | undefined;
+
+  for (const batch of batches) {
+    const { scores, error } = await scoreBatch(profile, batch);
+    allScores.push(...scores);
+    if (error && !firstError) firstError = error;
+  }
+
+  // Only surface the error if NOTHING got scored — a partial batch failure
+  // still returns whatever scores succeeded.
+  if (allScores.length === 0 && firstError) {
+    return { scores: [], error: firstError };
+  }
+  return { scores: allScores };
 }

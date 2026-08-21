@@ -4,6 +4,11 @@ import { computeMatchScores } from "@/lib/services/opportunityMatching";
 import type { Opportunity } from "@/lib/opportunities";
 import type { Profile } from "@/lib/profile";
 
+// POST scores in sequential batches (see opportunityMatching.ts), which can
+// take longer than the default serverless timeout for large opportunity
+// counts.
+export const maxDuration = 60;
+
 // GET returns cached match scores for the signed-in user (cheap DB read,
 // no AI call — safe to call on every Discover/Tracker mount).
 export async function GET() {
