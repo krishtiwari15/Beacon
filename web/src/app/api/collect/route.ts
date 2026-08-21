@@ -15,6 +15,10 @@ const ARBEITNOW_URL = "https://www.arbeitnow.com/api/job-board-api";
 // Official, free, no-auth-required U.S. federal grants search API.
 // https://grants.gov/api/api-guide
 const GRANTS_GOV_URL = "https://api.grants.gov/v1/api/search2";
+// Official, free U.S. federal jobs API — requires a self-registered key
+// (developer.usajobs.gov). Inactive until USAJOBS_API_KEY/USAJOBS_USER_AGENT
+// are set; fetchUSAJobs() returns [] silently until then.
+const USAJOBS_URL = "https://data.usajobs.gov/api/search";
 
 type NewOpportunity = {
   title: string;
@@ -158,6 +162,54 @@ async function fetchGrantsGov(): Promise<NewOpportunity[]> {
   }
 }
 
+function parseUsaJobsDate(iso: string | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString().slice(0, 10);
+}
+
+async function fetchUSAJobs(): Promise<NewOpportunity[]> {
+  const apiKey = process.env.USAJOBS_API_KEY;
+  const userAgent = process.env.USAJOBS_USER_AGENT;
+  if (!apiKey || !userAgent) return [];
+
+  try {
+    const url = `${USAJOBS_URL}?Keyword=student%20intern&ResultsPerPage=25`;
+    const res = await fetch(url, {
+      headers: {
+        Host: "data.usajobs.gov",
+        "User-Agent": userAgent,
+        "Authorization-Key": apiKey,
+      },
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const items = (json?.SearchResult?.SearchResultItems ?? []) as Record<string, unknown>[];
+    return items
+      .map((item) => item.MatchedObjectDescriptor as Record<string, unknown>)
+      .filter((d) => d?.PositionTitle && d?.PositionURI)
+      .map((d) => ({
+        title: d.PositionTitle as string,
+        type: "internship",
+        category: "Government",
+        organization: (d.OrganizationName as string) || (d.DepartmentName as string) || "U.S. Government",
+        location: (d.PositionLocationDisplay as string) || "United States",
+        eligibility: "See official USAJOBS listing for eligibility criteria.",
+        deadline: parseUsaJobsDate(d.PositionEndDate as string | undefined),
+        source_url: (Array.isArray(d.ApplyURI) ? (d.ApplyURI[0] as string) : undefined) || (d.PositionURI as string),
+        tags: [],
+        stipend: "Federal pay scale — see listing",
+        difficulty: "Intermediate",
+        work_mode: "On-site",
+        logo_url: "",
+      }));
+  } catch {
+    return [];
+  }
+}
+
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -169,6 +221,7 @@ export async function GET(req: NextRequest) {
     ...(await fetchHimalayas()),
     ...(await fetchArbeitnow()),
     ...(await fetchGrantsGov()),
+    ...(await fetchUSAJobs()),
   ].filter((o) => o.source_url);
 
   const supabase = createAdminClient();
