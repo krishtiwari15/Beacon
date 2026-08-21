@@ -15,6 +15,8 @@ export default function Planner() {
     supabase
       .from("opportunities")
       .select("*")
+      .order("deadline", { ascending: true, nullsFirst: false })
+      .limit(300)
       .then(({ data, error }) => {
         if (error) setError(error.message);
         else setOpportunities((data ?? []) as Opportunity[]);

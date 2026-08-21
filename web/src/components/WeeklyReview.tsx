@@ -26,7 +26,7 @@ export default function WeeklyReview({ user }: { user: User }) {
       supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("roadmaps").select("*").eq("user_id", user.id).maybeSingle(),
       supabase.from("saved_opportunities").select("id, status, saved_at, opportunity:opportunities(*)").eq("user_id", user.id),
-      supabase.from("opportunities").select("created_at"),
+      supabase.from("opportunities").select("id", { count: "exact", head: true }).gte("created_at", new Date(Date.now() - SEVEN_DAYS_MS).toISOString()),
       supabase.from("mentors").select("user_id").eq("user_id", user.id).maybeSingle(),
       supabase.from("career_health_history").select("score, recorded_at").eq("user_id", user.id).order("recorded_at", { ascending: false }),
     ]).then(async ([profileRes, roadmapRes, savedRes, oppsRes, mentorRes, historyRes]) => {
@@ -40,14 +40,13 @@ export default function WeeklyReview({ user }: { user: User }) {
 
       const now = Date.now();
 
-      // Record today's snapshot at most once — check the most recent entry
-      // before inserting a new one.
+      // Record today's snapshot at most once. A unique (user_id, recorded_date)
+      // index makes this atomic — two concurrent loads racing here both hit
+      // onConflict instead of producing duplicate same-day rows.
       const history = (historyRes.data ?? []) as { score: number; recorded_at: string }[];
-      const latest = history[0];
-      const isToday = latest && new Date(latest.recorded_at).toDateString() === new Date().toDateString();
-      if (!isToday) {
-        await supabase.from("career_health_history").insert({ user_id: user.id, score: health.overall });
-      }
+      await supabase
+        .from("career_health_history")
+        .upsert({ user_id: user.id, score: health.overall }, { onConflict: "user_id,recorded_date", ignoreDuplicates: true });
 
       // Closest snapshot from ~7+ days ago, or the oldest available.
       const weekAgoCandidate = history.find((h) => now - new Date(h.recorded_at).getTime() >= SEVEN_DAYS_MS - 86_400_000);
@@ -63,10 +62,7 @@ export default function WeeklyReview({ user }: { user: User }) {
       if (savedThisWeek > 0) accomplishments.push(`Saved ${savedThisWeek} new opportunit${savedThisWeek === 1 ? "y" : "ies"}`);
       setAccomplished(accomplishments);
 
-      const newOppCount = ((oppsRes.data ?? []) as { created_at: string }[]).filter(
-        (o) => now - new Date(o.created_at).getTime() <= SEVEN_DAYS_MS,
-      ).length;
-      setNewOpportunities(newOppCount);
+      setNewOpportunities(oppsRes.count ?? 0);
 
       const incompleteTasks = (roadmap?.stages ?? []).flatMap((s) => s.tasks.filter((t) => !t.done).map((t) => t.text)).slice(0, 3);
       const next = [...incompleteTasks];

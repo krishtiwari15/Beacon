@@ -23,10 +23,10 @@ export default function ResearchHub({ user }: { user: User }) {
   async function load() {
     const supabase = createClient();
     const [oppsRes, savedRes, profileRes, mentorsRes] = await Promise.all([
-      supabase.from("opportunities").select("*"),
+      supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }).limit(300),
       supabase.from("saved_opportunities").select("opportunity_id").eq("user_id", user.id),
       supabase.from("profiles").select("research_interests").eq("user_id", user.id).maybeSingle(),
-      supabase.from("mentors").select("*"),
+      supabase.from("mentors").select("*").limit(200),
     ]);
     setOpportunities((oppsRes.data ?? []) as Opportunity[]);
     setSavedIds(new Set((savedRes.data ?? []).map((r) => r.opportunity_id as number)));

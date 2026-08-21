@@ -63,7 +63,7 @@ export async function POST() {
 
   const [{ data: profile }, { data: opportunities, error: oppsError }, { data: interactions }] = await Promise.all([
     supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
-    supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }),
+    supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }).limit(400),
     supabase
       .from("user_interactions")
       .select("type, target")

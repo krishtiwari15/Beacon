@@ -47,6 +47,8 @@ export default function Eligibility({ user }: { user: User }) {
     supabase
       .from("opportunities")
       .select("*")
+      .order("deadline", { ascending: true, nullsFirst: false })
+      .limit(300)
       .then(({ data }) => {
         const rows = (data ?? []) as Opportunity[];
         setOpportunities(rows);

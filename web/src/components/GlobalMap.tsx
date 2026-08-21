@@ -29,6 +29,8 @@ export default function GlobalMap() {
     supabase
       .from("opportunities")
       .select("*")
+      .order("deadline", { ascending: true, nullsFirst: false })
+      .limit(1000)
       .then(({ data }) => {
         setOpportunities((data ?? []) as Opportunity[]);
         setLoading(false);

@@ -26,7 +26,7 @@ export default function StartupHub({ user }: { user: User }) {
   async function load() {
     const supabase = createClient();
     const [oppsRes, savedRes, planRes] = await Promise.all([
-      supabase.from("opportunities").select("*"),
+      supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }).limit(300),
       supabase.from("saved_opportunities").select("opportunity_id").eq("user_id", user.id),
       supabase.from("startup_roadmaps").select("*").eq("user_id", user.id).maybeSingle(),
     ]);

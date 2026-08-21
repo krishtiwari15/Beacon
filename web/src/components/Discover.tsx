@@ -40,7 +40,7 @@ export default function Discover({ user }: { user: User }) {
       setError(null);
 
       const [oppsRes, savedRes, profileRes] = await Promise.all([
-        supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }),
+        supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }).limit(500),
         supabase.from("saved_opportunities").select("opportunity_id").eq("user_id", user.id),
         supabase.from("profiles").select("skills").eq("user_id", user.id).maybeSingle(),
       ]);

@@ -21,7 +21,7 @@ export default function Skills({ user }: { user: User }) {
   useEffect(() => {
     const supabase = createClient();
     Promise.all([
-      supabase.from("opportunities").select("*"),
+      supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }).limit(300),
       supabase.from("profiles").select("skills").eq("user_id", user.id).maybeSingle(),
     ]).then(([oppsRes, profileRes]) => {
       setOpportunities((oppsRes.data ?? []) as Opportunity[]);

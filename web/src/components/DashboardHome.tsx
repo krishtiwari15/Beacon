@@ -55,7 +55,7 @@ export default function DashboardHome({ user }: { user: User }) {
         .from("saved_opportunities")
         .select("id, status, opportunity:opportunities(*)")
         .eq("user_id", user.id),
-      supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }),
+      supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }).limit(300),
       fetch("/api/match-scores").then((r) => r.json()),
       supabase.from("mentors").select("user_id").eq("user_id", user.id).maybeSingle(),
     ]).then(([profileRes, roadmapRes, savedRes, oppsRes, matchesJson, mentorRes]) => {
