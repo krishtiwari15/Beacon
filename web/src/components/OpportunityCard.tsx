@@ -59,20 +59,20 @@ export default function OpportunityCard({
 
   return (
     <div className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)]/30 hover:shadow-lg">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           {opportunity.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={opportunity.logo_url}
               alt=""
-              className="h-9 w-9 rounded-md border border-[var(--border)] bg-white object-contain p-1"
+              className="h-9 w-9 shrink-0 rounded-md border border-[var(--border)] bg-white object-contain p-1"
               onError={(e) => {
                 (e.target as HTMLImageElement).style.display = "none";
               }}
             />
           ) : null}
-          <span className="font-serif text-lg font-semibold text-[var(--heading)]">{opportunity.title}</span>
+          <span className="min-w-0 break-words font-serif text-lg font-semibold text-[var(--heading)]">{opportunity.title}</span>
         </div>
         <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
           {matchScore !== undefined && (

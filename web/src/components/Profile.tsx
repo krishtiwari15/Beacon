@@ -303,8 +303,8 @@ export default function Profile({ user }: { user: User }) {
         ) : (
           <div className="mt-3 flex flex-col gap-1.5">
             {interactions.map((i, idx) => (
-              <div key={idx} className="flex items-center justify-between gap-3 rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs backdrop-blur-md">
-                <span className="text-[var(--text)]">
+              <div key={idx} className="flex flex-wrap items-center justify-between gap-3 rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs backdrop-blur-md">
+                <span className="min-w-0 break-words text-[var(--text)]">
                   {INTERACTION_LABELS[i.type] ?? i.type} <b>{i.target}</b>
                 </span>
                 <span className="shrink-0 text-[var(--text-muted)]">

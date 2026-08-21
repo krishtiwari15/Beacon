@@ -60,9 +60,9 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
             <div className="mt-3 flex flex-col gap-4">
               {proof.map((s) => (
                 <div key={s.skill}>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-[var(--text)]">{s.skill}</span>
-                    <span className="text-[var(--text-muted)]">{s.proficiency}%</span>
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 text-sm">
+                    <span className="min-w-0 break-words font-medium text-[var(--text)]">{s.skill}</span>
+                    <span className="shrink-0 text-[var(--text-muted)]">{s.proficiency}%</span>
                   </div>
                   <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-black/[0.06]">
                     <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${s.proficiency}%` }} />
