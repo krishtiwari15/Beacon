@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { Opportunity } from "@/lib/opportunities";
 import { track } from "@/lib/track";
@@ -8,8 +9,9 @@ import CardSkeleton from "@/components/CardSkeleton";
 
 type Resources = { resources?: string[]; certifications?: string[]; projects?: string[]; error?: string };
 
-export default function Skills() {
+export default function Skills({ user }: { user: User }) {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  const [profileSkills, setProfileSkills] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<string | null>(null);
   const [resourceCache, setResourceCache] = useState<Record<string, Resources>>({});
@@ -17,20 +19,30 @@ export default function Skills() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase
-      .from("opportunities")
-      .select("*")
-      .then(({ data }) => {
-        setOpportunities((data ?? []) as Opportunity[]);
-        setLoading(false);
-      });
-  }, []);
+    Promise.all([
+      supabase.from("opportunities").select("*"),
+      supabase.from("profiles").select("skills").eq("user_id", user.id).maybeSingle(),
+    ]).then(([oppsRes, profileRes]) => {
+      setOpportunities((oppsRes.data ?? []) as Opportunity[]);
+      setProfileSkills((profileRes.data?.skills as string[] | undefined) ?? []);
+      setLoading(false);
+    });
+  }, [user.id]);
 
   const skillCounts = useMemo(() => {
     const counts = new Map<string, number>();
     opportunities.forEach((o) => o.tags.forEach((t) => counts.set(t, (counts.get(t) ?? 0) + 1)));
     return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
   }, [opportunities]);
+
+  const knownSkills = useMemo(() => new Set(profileSkills.map((s) => s.toLowerCase())), [profileSkills]);
+
+  // Skill ROI: real, unlearned skills ranked by how many real opportunities
+  // they'd unlock — the AI never invents this count, it's a direct tally.
+  const learningPriorities = useMemo(
+    () => skillCounts.filter(([skill]) => !knownSkills.has(skill.toLowerCase())).slice(0, 5),
+    [skillCounts, knownSkills],
+  );
 
   const matchingOpportunities = useMemo(
     () => (selected ? opportunities.filter((o) => o.tags.includes(selected)) : []),
@@ -75,25 +87,51 @@ export default function Skills() {
         unlocks, plus AI-suggested ways to learn it.
       </p>
 
+      {learningPriorities.length > 0 && (
+        <div className="mt-5 rounded-[16px] border border-[var(--accent)]/20 bg-[var(--accent)]/5 p-4">
+          <div className="text-xs font-semibold tracking-wider text-[var(--accent)] uppercase">
+            🚀 Skill ROI — highest-impact skills you don&apos;t have yet
+          </div>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            Based on the opportunities currently indexed by Beacon — ranked by real, current opportunity count.
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {learningPriorities.map(([skill, count]) => (
+              <button
+                key={skill}
+                onClick={() => selectSkill(skill)}
+                className="cursor-pointer rounded-full border border-[var(--accent)] bg-white px-3 py-1.5 text-sm font-medium text-[var(--accent)] transition-colors duration-200 hover:bg-[var(--accent)] hover:text-white"
+              >
+                {skill} <span className="opacity-70">→ +{count} opportunities</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {skillCounts.length === 0 ? (
         <div className="mt-5 rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-8 text-center text-sm text-[var(--text-muted)] backdrop-blur-md">
           No tagged skills found in the current opportunities.
         </div>
       ) : (
         <div className="mt-5 flex flex-wrap gap-2">
-          {skillCounts.map(([skill, count]) => (
-            <button
-              key={skill}
-              onClick={() => selectSkill(skill)}
-              className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition-colors duration-200 ${
-                selected === skill
-                  ? "border-[var(--accent)] bg-[var(--accent)] text-white"
-                  : "border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]"
-              }`}
-            >
-              {skill} <span className="opacity-70">· {count}</span>
-            </button>
-          ))}
+          {skillCounts.map(([skill, count]) => {
+            const known = knownSkills.has(skill.toLowerCase());
+            return (
+              <button
+                key={skill}
+                onClick={() => selectSkill(skill)}
+                className={`cursor-pointer rounded-full border px-3 py-1.5 text-sm font-medium transition-colors duration-200 ${
+                  selected === skill
+                    ? "border-[var(--accent)] bg-[var(--accent)] text-white"
+                    : "border-[var(--border)] text-[var(--text)] hover:border-[var(--accent)]"
+                }`}
+              >
+                {known && "✓ "}
+                {skill} <span className="opacity-70">· {count}</span>
+              </button>
+            );
+          })}
         </div>
       )}
 

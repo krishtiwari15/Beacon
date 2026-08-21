@@ -272,7 +272,7 @@ export default function Home() {
         {tab === "tracker" && <Tracker user={user} />}
         {tab === "career" && <Career user={user} />}
         {tab === "projects" && <Projects user={user} />}
-        {tab === "skills" && <Skills />}
+        {tab === "skills" && <Skills user={user} />}
         {tab === "eligibility" && <Eligibility user={user} />}
         {tab === "resume" && <ResumeAnalyzer user={user} />}
         {tab === "mentors" && <Mentors user={user} />}

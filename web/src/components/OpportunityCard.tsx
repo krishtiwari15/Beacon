@@ -36,6 +36,7 @@ export default function OpportunityCard({
   onToggleSave,
   removeMode = false,
   matchScore,
+  readiness,
   children,
 }: {
   opportunity: Opportunity;
@@ -43,6 +44,7 @@ export default function OpportunityCard({
   onToggleSave: () => void;
   removeMode?: boolean;
   matchScore?: number;
+  readiness?: { score: number; missing: string[] };
   children?: React.ReactNode;
 }) {
   const [showIntel, setShowIntel] = useState(false);
@@ -85,6 +87,15 @@ export default function OpportunityCard({
       <div className="mt-1 text-xs text-[var(--text-muted)]">
         {opportunity.organization} · {opportunity.category}
       </div>
+
+      {readiness && (
+        <div className="mt-2 rounded-[12px] border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs">
+          <span className="font-semibold text-amber-800">🎯 {readiness.score}% ready</span>
+          {readiness.missing.length > 0 && (
+            <span className="text-amber-800"> — missing: {readiness.missing.join(", ")}</span>
+          )}
+        </div>
+      )}
 
       <div className="mt-2 flex flex-wrap items-center gap-3">
         {hasIntel && (

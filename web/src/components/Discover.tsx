@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { Opportunity } from "@/lib/opportunities";
+import { quickReadiness } from "@/lib/readiness";
 import OpportunityCard from "@/components/OpportunityCard";
 import CardSkeleton from "@/components/CardSkeleton";
 
@@ -11,6 +12,7 @@ export default function Discover({ user }: { user: User }) {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
   const [matchScores, setMatchScores] = useState<Map<number, number>>(new Map());
+  const [profileSkills, setProfileSkills] = useState<string[]>([]);
   const [matching, setMatching] = useState(false);
   const [matchError, setMatchError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,6 +23,7 @@ export default function Discover({ user }: { user: User }) {
   const [modeFilter, setModeFilter] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("");
   const [fundedOnly, setFundedOnly] = useState(false);
+  const [almostReadyOnly, setAlmostReadyOnly] = useState(false);
 
   // Rendering hundreds of full opportunity cards at once (each with its own
   // Opportunity Intelligence modal, trust-score computation, etc.) is what
@@ -36,9 +39,10 @@ export default function Discover({ user }: { user: User }) {
       setLoading(true);
       setError(null);
 
-      const [oppsRes, savedRes] = await Promise.all([
+      const [oppsRes, savedRes, profileRes] = await Promise.all([
         supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }),
         supabase.from("saved_opportunities").select("opportunity_id").eq("user_id", user.id),
+        supabase.from("profiles").select("skills").eq("user_id", user.id).maybeSingle(),
       ]);
 
       if (oppsRes.error) {
@@ -49,6 +53,7 @@ export default function Discover({ user }: { user: User }) {
       if (!savedRes.error && savedRes.data) {
         setSavedIds(new Set(savedRes.data.map((r) => r.opportunity_id as number)));
       }
+      setProfileSkills((profileRes.data?.skills as string[] | undefined) ?? []);
       setLoading(false);
     }
 
@@ -130,17 +135,25 @@ export default function Discover({ user }: { user: User }) {
       const stipend = o.stipend || "";
       if (/unpaid|volunteer|not specified|free/i.test(stipend)) return false;
     }
+    if (almostReadyOnly) {
+      const { score } = quickReadiness(profileSkills, o.tags);
+      if (score < 50 || score >= 90) return false;
+    }
     return true;
   });
 
-  const visible = filtered.slice(0, visibleCount);
+  const visible = almostReadyOnly
+    ? [...filtered]
+        .sort((a, b) => quickReadiness(profileSkills, b.tags).score - quickReadiness(profileSkills, a.tags).score)
+        .slice(0, visibleCount)
+    : filtered.slice(0, visibleCount);
 
   // Reset how many cards are shown whenever the filtered set changes, so a
   // narrower search doesn't leave you scrolled past what's now available.
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, typeFilter, modeFilter, difficultyFilter, fundedOnly]);
+  }, [search, typeFilter, modeFilter, difficultyFilter, fundedOnly, almostReadyOnly]);
 
   if (loading) {
     return <CardSkeleton count={4} />;
@@ -197,15 +210,31 @@ export default function Discover({ user }: { user: User }) {
         </select>
       </div>
 
-      <label className="mt-3 flex w-fit cursor-pointer items-center gap-2 text-sm text-[var(--text)]">
-        <input
-          type="checkbox"
-          checked={fundedOnly}
-          onChange={(e) => setFundedOnly(e.target.checked)}
-          className="h-4 w-4 cursor-pointer accent-[var(--accent)]"
-        />
-        Paid / funded only
-      </label>
+      <div className="mt-3 flex flex-wrap gap-4">
+        <label className="flex w-fit cursor-pointer items-center gap-2 text-sm text-[var(--text)]">
+          <input
+            type="checkbox"
+            checked={fundedOnly}
+            onChange={(e) => setFundedOnly(e.target.checked)}
+            className="h-4 w-4 cursor-pointer accent-[var(--accent)]"
+          />
+          Paid / funded only
+        </label>
+        <label className="flex w-fit cursor-pointer items-center gap-2 text-sm text-[var(--text)]">
+          <input
+            type="checkbox"
+            checked={almostReadyOnly}
+            onChange={(e) => setAlmostReadyOnly(e.target.checked)}
+            className="h-4 w-4 cursor-pointer accent-[var(--accent)]"
+          />
+          🎯 Almost ready only
+        </label>
+      </div>
+      {almostReadyOnly && (
+        <p className="mt-1 text-xs text-[var(--text-muted)]">
+          Opportunities where you already have 50-89% of the listed skills — close, but not quite there yet.
+        </p>
+      )}
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
@@ -234,6 +263,7 @@ export default function Discover({ user }: { user: User }) {
               saved={savedIds.has(o.id)}
               onToggleSave={() => toggleSave(o.id)}
               matchScore={matchScores.get(o.id)}
+              readiness={almostReadyOnly ? quickReadiness(profileSkills, o.tags) : undefined}
             />
           ))
         )}
