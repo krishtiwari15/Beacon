@@ -59,7 +59,7 @@ export default function Eligibility() {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-8">
-      <div className="border-l-2 border-[#f5c518] pl-3 font-mono text-sm font-bold uppercase tracking-widest text-[#f5c518]">
+      <div className="glow-text border-l-2 border-[#f5c518] pl-3 font-mono text-sm font-bold uppercase tracking-widest text-[#f5c518]">
         🤖 AI Eligibility Checker
       </div>
       <p className="mt-2 text-sm text-zinc-400">
@@ -90,7 +90,7 @@ export default function Eligibility() {
         <button
           type="submit"
           disabled={busy || !oppId}
-          className="mt-4 cursor-pointer rounded-md bg-[#f5c518] px-4 py-2 text-sm font-bold text-black transition-opacity duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 cursor-pointer rounded-md bg-[#f5c518] px-4 py-2 text-sm font-bold text-black transition-all duration-200 hover:opacity-90 hover:shadow-[0_0_18px_rgba(245,197,24,0.4)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "Asking the AI…" : "🤖 Check My Eligibility"}
         </button>

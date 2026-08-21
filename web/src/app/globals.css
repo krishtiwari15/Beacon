@@ -7,7 +7,7 @@
 }
 
 :root {
-  --beacon-bg: #0d0d0d;
+  --beacon-bg: #0a0a0a;
   --beacon-panel: #141414;
   --beacon-border: #262626;
   --beacon-amber: #f5c518;
@@ -16,9 +16,38 @@
 }
 
 body {
-  background: var(--beacon-bg);
+  background-color: var(--beacon-bg);
+  background-image:
+    linear-gradient(rgba(245, 197, 24, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 197, 24, 0.035) 1px, transparent 1px);
+  background-size: 44px 44px;
   color: var(--beacon-text);
   font-family: var(--font-sans);
+}
+
+.glow-text {
+  text-shadow: 0 0 14px rgba(245, 197, 24, 0.55);
+}
+
+.glow-border {
+  box-shadow:
+    0 0 0 1px rgba(245, 197, 24, 0.4),
+    0 0 16px rgba(245, 197, 24, 0.25);
+}
+
+.glow-pulse {
+  box-shadow: 0 0 10px rgba(245, 197, 24, 0.7);
+  animation: beacon-pulse 2s ease-in-out infinite;
+}
+
+@keyframes beacon-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

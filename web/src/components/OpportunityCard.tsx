@@ -26,7 +26,7 @@ export default function OpportunityCard({
   const unpaid = /unpaid|volunteer|not specified|free/i.test(stipend);
 
   return (
-    <div className="rounded border border-[#262626] bg-[#141414] p-5 transition-colors duration-200 hover:border-[#3a3a3a]">
+    <div className="rounded border border-[#262626] bg-[#141414] p-5 transition-all duration-200 hover:border-[#f5c518]/40 hover:shadow-[0_0_20px_rgba(245,197,24,0.1)]">
       <div className="flex items-center gap-3">
         {opportunity.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element

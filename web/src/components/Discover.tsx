@@ -147,7 +147,7 @@ export default function Discover({ user }: { user: User }) {
         </select>
       </div>
 
-      <div className="mt-5 border-l-2 border-[#f5c518] pl-3 font-mono text-sm font-bold uppercase tracking-widest text-[#f5c518]">
+      <div className="mt-5 glow-text border-l-2 border-[#f5c518] pl-3 font-mono text-sm font-bold uppercase tracking-widest text-[#f5c518]">
         {filtered.length} {filtered.length === 1 ? "opportunity" : "opportunities"} in range
       </div>
 

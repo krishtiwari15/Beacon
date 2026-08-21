@@ -86,14 +86,14 @@ export default function Tracker({ user }: { user: User }) {
     <div className="mx-auto w-full max-w-5xl px-6 py-8">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map(([num, label]) => (
-          <div key={label} className="rounded border border-t-2 border-[#262626] border-t-[#f5c518] bg-[#141414] p-4 text-center">
-            <div className="font-mono text-2xl font-black text-[#f5c518]">{num}</div>
+          <div key={label} className="rounded border border-t-2 border-[#262626] border-t-[#f5c518] bg-[#141414] p-4 text-center transition-shadow duration-200 hover:shadow-[0_0_16px_rgba(245,197,24,0.15)]">
+            <div className="glow-text font-display text-2xl font-black text-[#f5c518]">{num}</div>
             <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-zinc-400">{label}</div>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 border-l-2 border-[#f5c518] pl-3 font-mono text-sm font-bold uppercase tracking-widest text-[#f5c518]">
+      <div className="mt-6 glow-text border-l-2 border-[#f5c518] pl-3 font-mono text-sm font-bold uppercase tracking-widest text-[#f5c518]">
         Your pipeline
       </div>
 

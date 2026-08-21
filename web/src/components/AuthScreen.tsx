@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/client";
 
 type Tab = "login" | "signup";
 
+const inputClass =
+  "rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30";
+
 export default function AuthScreen() {
   const [tab, setTab] = useState<Tab>("login");
   const [name, setName] = useState("");
@@ -41,17 +44,23 @@ export default function AuthScreen() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-[#0d0d0d] px-4">
-      <div className="w-full max-w-sm">
-        <div className="rounded border border-[#262626] border-t-4 border-t-[#f5c518] bg-[#131313] p-8">
-          <h1 className="font-display text-3xl font-black tracking-widest text-[#f5c518] uppercase">
-            🛰️ Beacon
-          </h1>
-          <p className="mt-2 font-mono text-sm text-zinc-500">
-            // Sign in to track your opportunities.
-          </p>
+    <div className="flex flex-1 flex-col items-center justify-center bg-[#0a0a0a] px-4 py-16">
+      <div className="mb-8 text-center">
+        <div className="mb-3 flex items-center justify-center gap-2 font-mono text-[11px] tracking-[0.3em] text-zinc-600 uppercase">
+          <span className="glow-pulse h-1.5 w-1.5 rounded-full bg-[#f5c518]" />
+          Signal locked
+        </div>
+        <h1 className="glow-text font-display text-5xl font-black tracking-[0.15em] text-[#f5c518] uppercase sm:text-6xl">
+          🛰️ Beacon
+        </h1>
+        <p className="mt-3 font-mono text-sm text-zinc-500">
+          // Every opportunity, tracked, scored, and never missed.
+        </p>
+      </div>
 
-          <div className="mt-6 flex gap-1 rounded-lg bg-zinc-900 p-1">
+      <div className="w-full max-w-sm">
+        <div className="glow-border rounded border border-[#262626] border-t-4 border-t-[#f5c518] bg-[#131313] p-8">
+          <div className="flex gap-1 rounded-lg bg-zinc-900 p-1">
             {(["login", "signup"] as Tab[]).map((t) => (
               <button
                 key={t}
@@ -61,9 +70,7 @@ export default function AuthScreen() {
                   setInfo(null);
                 }}
                 className={`flex-1 cursor-pointer rounded-md py-1.5 text-sm font-medium transition-colors duration-200 ${
-                  tab === t
-                    ? "bg-[#f5c518] text-black"
-                    : "text-zinc-400 hover:text-zinc-200"
+                  tab === t ? "bg-[#f5c518] text-black" : "text-zinc-400 hover:text-zinc-200"
                 }`}
               >
                 {t === "login" ? "🔑 Log in" : "✨ Sign up"}
@@ -85,7 +92,7 @@ export default function AuthScreen() {
                 placeholder="Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30"
+                className={inputClass}
               />
             )}
             <input
@@ -94,7 +101,7 @@ export default function AuthScreen() {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]"
+              className={inputClass}
             />
             <input
               type="password"
@@ -102,7 +109,7 @@ export default function AuthScreen() {
               placeholder="Password (min 6 characters)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]"
+              className={inputClass}
             />
 
             {error && <p className="text-sm text-red-400">⚠️ {error}</p>}
@@ -111,7 +118,7 @@ export default function AuthScreen() {
             <button
               type="submit"
               disabled={busy}
-              className="mt-1 cursor-pointer rounded-md bg-[#f5c518] py-2 text-sm font-bold text-black transition-opacity duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-1 cursor-pointer rounded-md bg-[#f5c518] py-2 text-sm font-bold text-black transition-all duration-200 hover:opacity-90 hover:shadow-[0_0_18px_rgba(245,197,24,0.4)] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? "Please wait…" : tab === "login" ? "Log In" : "Create Account"}
             </button>

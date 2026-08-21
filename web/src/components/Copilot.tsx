@@ -45,7 +45,7 @@ export default function Copilot({ user }: { user: User }) {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-8">
-      <div className="border-l-2 border-[#f5c518] pl-3 font-mono text-sm font-bold uppercase tracking-widest text-[#f5c518]">
+      <div className="glow-text border-l-2 border-[#f5c518] pl-3 font-mono text-sm font-bold uppercase tracking-widest text-[#f5c518]">
         🧭 Career Copilot
       </div>
       <p className="mt-2 text-sm text-zinc-400">
@@ -60,7 +60,7 @@ export default function Copilot({ user }: { user: User }) {
         <button
           type="submit"
           disabled={busy}
-          className="cursor-pointer rounded-md bg-[#f5c518] px-4 py-2 text-sm font-bold text-black transition-opacity duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2"
+          className="cursor-pointer rounded-md bg-[#f5c518] px-4 py-2 text-sm font-bold text-black transition-all duration-200 hover:opacity-90 hover:shadow-[0_0_18px_rgba(245,197,24,0.4)] disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2"
         >
           {busy ? "AI is scanning all opportunities…" : "🧭 Find My Best Matches"}
         </button>
@@ -73,7 +73,7 @@ export default function Copilot({ user }: { user: User }) {
 
       {!!matches?.length && (
         <div className="mt-5">
-          <div className="border-l-2 border-[#f5c518] pl-3 font-mono text-xs font-bold uppercase tracking-widest text-[#f5c518]">
+          <div className="glow-text border-l-2 border-[#f5c518] pl-3 font-mono text-xs font-bold uppercase tracking-widest text-[#f5c518]">
             🎯 Your top matches
           </div>
           <div className="mt-4 flex flex-col gap-4">
