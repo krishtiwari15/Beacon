@@ -5,7 +5,10 @@ import { LogIn, UserPlus, Sparkles, Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Animate from "@/components/Animate";
 import AuthModal from "@/components/AuthModal";
-import HeroBackground from "@/components/HeroBackground";
+import BoomerangVideoBg from "@/components/BoomerangVideoBg";
+
+const BG_VIDEO =
+  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260511_131941_d136af49-e243-493a-be14-6ff3f24e09e6.mp4";
 
 const NAV_LINKS = [
   { label: "Discover" },
@@ -25,26 +28,26 @@ function RadarBlock({ onOpenAuth }: { onOpenAuth: () => void }) {
 
   return (
     <div className="absolute bottom-6 left-4 right-4 z-10 max-w-sm sm:bottom-8 sm:left-6 sm:right-auto md:bottom-10 md:left-10">
-      <div className="mb-3 flex items-center gap-2 text-[var(--cta)]">
+      <div className="mb-3 flex items-center gap-2 text-[var(--cta)] sm:text-white/95">
         <Sparkles className="h-4 w-4" />
         <span className="text-sm font-semibold">
           Beacon Radar{count !== null ? ` · ${count} live` : ""}
         </span>
       </div>
-      <p className="mb-6 max-w-xs text-xs leading-relaxed font-medium text-[var(--cta)]/90">
+      <p className="mb-6 max-w-xs text-xs leading-relaxed font-medium text-[var(--cta)]/90 sm:text-white/85">
         Beacon scans job boards daily and uses AI to score your fit — so you never waste time on a
         mismatch.
       </p>
       <div className="flex flex-wrap items-center gap-4">
         <button
           onClick={onOpenAuth}
-          className="cursor-pointer rounded-full bg-[var(--cta)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--cta-hover)] sm:px-6 sm:py-3"
+          className="cursor-pointer rounded-full bg-[var(--cta)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[var(--cta-hover)] sm:bg-white sm:text-[var(--text)] sm:hover:bg-white/90 sm:px-6 sm:py-3"
         >
           Get started
         </button>
         <button
           onClick={onOpenAuth}
-          className="cursor-pointer text-sm font-semibold text-[var(--cta)] transition-opacity hover:opacity-80"
+          className="cursor-pointer text-sm font-semibold text-[var(--cta)] transition-opacity hover:opacity-80 sm:text-white"
         >
           Know more.
         </button>
@@ -58,7 +61,7 @@ export default function Hero() {
 
   return (
     <section className="relative min-h-screen w-full overflow-hidden sm:h-screen">
-      <HeroBackground />
+      <BoomerangVideoBg src={BG_VIDEO} className="absolute inset-0 h-full w-full" />
       <Nav onOpenAuth={() => setAuthOpen(true)} />
 
       <div className="relative z-10 flex flex-col items-center px-4 pt-24 text-center sm:px-6 sm:pt-28 md:pt-32">
