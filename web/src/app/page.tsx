@@ -9,6 +9,7 @@ import {
   FileText,
   MessagesSquare,
   CalendarClock,
+  UserCircle,
   LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -19,6 +20,7 @@ import Planner from "@/components/Planner";
 import Eligibility from "@/components/Eligibility";
 import ResumeAnalyzer from "@/components/ResumeAnalyzer";
 import Copilot from "@/components/Copilot";
+import Profile from "@/components/Profile";
 
 const TABS = [
   { id: "discover", label: "Discover", icon: Compass },
@@ -27,6 +29,7 @@ const TABS = [
   { id: "resume", label: "Resume Analyzer", icon: FileText },
   { id: "copilot", label: "Career Copilot", icon: MessagesSquare },
   { id: "planner", label: "Planner", icon: CalendarClock },
+  { id: "profile", label: "Profile", icon: UserCircle },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -158,10 +161,11 @@ export default function Home() {
       <main className="relative flex-1">
         {tab === "discover" && <Discover user={user} />}
         {tab === "tracker" && <Tracker user={user} />}
-        {tab === "eligibility" && <Eligibility />}
+        {tab === "eligibility" && <Eligibility user={user} />}
         {tab === "resume" && <ResumeAnalyzer />}
         {tab === "copilot" && <Copilot user={user} />}
         {tab === "planner" && <Planner />}
+        {tab === "profile" && <Profile user={user} />}
       </main>
     </div>
   );

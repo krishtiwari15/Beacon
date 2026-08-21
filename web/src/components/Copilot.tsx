@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { Opportunity } from "@/lib/opportunities";
+import { Profile } from "@/lib/profile";
 import OpportunityCard from "@/components/OpportunityCard";
 
 type Match = Opportunity & { match: number; reason: string };
@@ -20,6 +21,25 @@ export default function Copilot({ user }: { user: User }) {
   const [matches, setMatches] = useState<Match[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [savedIds, setSavedIds] = useState<Set<number>>(new Set());
+  const [fromProfile, setFromProfile] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        const p = data as Profile;
+        setEducation(p.education ?? "");
+        setSkills((p.skills ?? []).join(", "));
+        setInterests(p.interests ?? "");
+        setGoals(p.career_goal ?? "");
+        setFromProfile(true);
+      });
+  }, [user.id]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,7 +72,9 @@ export default function Copilot({ user }: { user: User }) {
         Career Copilot
       </div>
       <p className="mt-2 text-sm text-[var(--text-muted)]">
-        Tell us about yourself, and the AI will scan all opportunities to find your best-fit matches.
+        {fromProfile
+          ? "Pre-filled from your saved profile — edit anything below, and the AI will scan all opportunities to find your best-fit matches."
+          : "Tell us about yourself, and the AI will scan all opportunities to find your best-fit matches. Tip: save this info once on the Profile tab and it'll be pre-filled here next time."}
       </p>
 
       <form

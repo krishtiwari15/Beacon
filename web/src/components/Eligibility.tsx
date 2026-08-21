@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { Opportunity } from "@/lib/opportunities";
+import { Profile } from "@/lib/profile";
 
 type Result = {
   verdict?: string;
@@ -20,7 +22,7 @@ const VERDICT_COLORS: Record<string, string> = {
 const inputClass =
   "rounded-md border border-[var(--border)] bg-black/[0.02] px-3 py-2 text-sm text-[var(--text)] outline-none transition-colors duration-200 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15";
 
-export default function Eligibility() {
+export default function Eligibility({ user }: { user: User }) {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [oppId, setOppId] = useState<number | null>(null);
   const [age, setAge] = useState("");
@@ -30,6 +32,7 @@ export default function Eligibility() {
   const [skills, setSkills] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const [fromProfile, setFromProfile] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -41,7 +44,23 @@ export default function Eligibility() {
         setOpportunities(rows);
         if (rows[0]) setOppId(rows[0].id);
       });
-  }, []);
+
+    supabase
+      .from("profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) return;
+        const p = data as Profile;
+        setAge(p.age ?? "");
+        setEducation(p.education ?? "");
+        setCountry(p.country ?? "");
+        setCgpa(p.cgpa ?? "");
+        setSkills((p.skills ?? []).join(", "));
+        setFromProfile(true);
+      });
+  }, [user.id]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,7 +85,9 @@ export default function Eligibility() {
         AI Eligibility Checker
       </div>
       <p className="mt-2 text-sm text-[var(--text-muted)]">
-        Enter your profile, pick an opportunity, and let AI assess your eligibility.
+        {fromProfile
+          ? "Pre-filled from your saved profile — edit anything below, pick an opportunity, and let AI assess your eligibility."
+          : "Enter your profile, pick an opportunity, and let AI assess your eligibility. Tip: save this info once on the Profile tab and it'll be pre-filled here next time."}
       </p>
 
       <form
