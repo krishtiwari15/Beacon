@@ -16,6 +16,7 @@ export type Opportunity = {
   quality_score: number | null;
   quality_summary: string | null;
   quality_reasons: string[] | null;
+  created_at: string;
 };
 
 export type SavedStatus =

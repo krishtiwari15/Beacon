@@ -11,6 +11,13 @@ export type Profile = {
   age: string | null;
   cgpa: string | null;
   country: string | null;
+  alert_preferences: {
+    high_match?: boolean;
+    deadline?: boolean;
+    new?: boolean;
+    funded?: boolean;
+    remote?: boolean;
+  } | null;
   updated_at: string;
 };
 

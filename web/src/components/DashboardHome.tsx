@@ -7,8 +7,17 @@ import { Opportunity, daysUntil } from "@/lib/opportunities";
 import { Profile } from "@/lib/profile";
 import { Roadmap, roadmapProgress } from "@/lib/roadmap";
 import { computeCareerHealth } from "@/lib/careerHealth";
+import { generateAlerts, DEFAULT_ALERT_PREFERENCES } from "@/lib/opportunityAlerts";
 import OpportunityCard from "@/components/OpportunityCard";
 import CardSkeleton from "@/components/CardSkeleton";
+
+const ALERT_CATEGORY_ICON: Record<string, string> = {
+  high_match: "🎯",
+  deadline: "🔥",
+  new: "✨",
+  funded: "💰",
+  remote: "🌍",
+};
 
 type SavedRow = { id: number; status: string; opportunity: Opportunity };
 
@@ -72,10 +81,9 @@ export default function DashboardHome({ user }: { user: User }) {
   const strength = profileStrength(profile);
   const progress = roadmap ? roadmapProgress(roadmap) : 0;
 
-  const recommended = opportunities
-    .filter((o) => matchScores.has(o.id))
-    .sort((a, b) => (matchScores.get(b.id) ?? 0) - (matchScores.get(a.id) ?? 0))
-    .slice(0, 3);
+  const savedIds = new Set(savedRows.map((r) => r.opportunity.id));
+  const alertPrefs = { ...DEFAULT_ALERT_PREFERENCES, ...(profile?.alert_preferences ?? {}) };
+  const alerts = generateAlerts(opportunities, matchScores, savedIds, alertPrefs);
 
   const deadlines = opportunities
     .map((o) => ({ o, d: daysUntil(o.deadline) }))
@@ -170,14 +178,27 @@ export default function DashboardHome({ user }: { user: User }) {
         </div>
       </div>
 
-      {recommended.length > 0 && (
+      {alerts.length > 0 && (
         <div className="mt-8">
           <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
-            Recommended for you
+            🔔 Opportunities you shouldn&apos;t miss
           </div>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">
+            Manage which alert types show up here from the Profile tab.
+          </p>
           <div className="mt-4 flex flex-col gap-4">
-            {recommended.map((o) => (
-              <OpportunityCard key={o.id} opportunity={o} saved={false} onToggleSave={() => {}} matchScore={matchScores.get(o.id)} />
+            {alerts.map((a) => (
+              <div key={a.opportunity.id}>
+                <div className="mb-1 text-xs font-semibold text-[var(--accent)]">
+                  {ALERT_CATEGORY_ICON[a.category]} {a.label}
+                </div>
+                <OpportunityCard
+                  opportunity={a.opportunity}
+                  saved={false}
+                  onToggleSave={() => {}}
+                  matchScore={matchScores.get(a.opportunity.id)}
+                />
+              </div>
             ))}
           </div>
         </div>

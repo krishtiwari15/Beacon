@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { Profile as ProfileRow } from "@/lib/profile";
+import { AlertPreferences, DEFAULT_ALERT_PREFERENCES } from "@/lib/opportunityAlerts";
 
 const inputClass =
   "rounded-md border border-[var(--border)] bg-black/[0.02] px-3 py-2 text-sm text-[var(--text)] outline-none transition-colors duration-200 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15";
@@ -38,6 +39,8 @@ export default function Profile({ user }: { user: User }) {
   const [error, setError] = useState<string | null>(null);
   const [interactions, setInteractions] = useState<InteractionRow[]>([]);
   const [clearing, setClearing] = useState(false);
+  const [alertPrefs, setAlertPrefs] = useState<AlertPreferences>(DEFAULT_ALERT_PREFERENCES);
+  const [savingPrefs, setSavingPrefs] = useState(false);
 
   function loadInteractions() {
     const supabase = createClient();
@@ -75,12 +78,22 @@ export default function Profile({ user }: { user: User }) {
             cgpa: row.cgpa ?? "",
             country: row.country ?? "",
           });
+          setAlertPrefs({ ...DEFAULT_ALERT_PREFERENCES, ...(row.alert_preferences ?? {}) });
         }
         setLoading(false);
       });
     loadInteractions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
+
+  async function toggleAlertPref(key: keyof AlertPreferences) {
+    const next = { ...alertPrefs, [key]: !alertPrefs[key] };
+    setAlertPrefs(next);
+    setSavingPrefs(true);
+    const supabase = createClient();
+    await supabase.from("profiles").upsert({ user_id: user.id, alert_preferences: next });
+    setSavingPrefs(false);
+  }
 
   async function clearInteractions() {
     setClearing(true);
@@ -180,6 +193,37 @@ export default function Profile({ user }: { user: User }) {
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {saved && <p className="mt-4 text-sm text-emerald-700">✓ Profile saved.</p>}
+
+      <div className="mt-8">
+        <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
+          🔔 Opportunity Alerts
+        </div>
+        <p className="mt-2 text-sm text-[var(--text-muted)]">
+          Choose which alert types show up in "Opportunities you shouldn&apos;t miss" on your Home tab.
+          {savingPrefs && " Saving…"}
+        </p>
+        <div className="mt-3 flex flex-wrap gap-3">
+          {(
+            [
+              ["high_match", "🎯 High match"],
+              ["deadline", "🔥 Deadline approaching"],
+              ["new", "✨ Newly discovered"],
+              ["funded", "💰 Fully funded"],
+              ["remote", "🌍 Remote"],
+            ] as [keyof AlertPreferences, string][]
+          ).map(([key, label]) => (
+            <label key={key} className="flex cursor-pointer items-center gap-2 text-sm text-[var(--text)]">
+              <input
+                type="checkbox"
+                checked={alertPrefs[key]}
+                onChange={() => toggleAlertPref(key)}
+                className="h-4 w-4 cursor-pointer accent-[var(--accent)]"
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+      </div>
 
       <div className="mt-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
