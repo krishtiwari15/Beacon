@@ -18,6 +18,7 @@ import {
   Hammer,
   FlaskConical,
   Microscope,
+  Trophy,
   LogOut,
   Menu,
   X,
@@ -39,6 +40,7 @@ import Mentors from "@/components/Mentors";
 import Projects from "@/components/Projects";
 import CareerSimulation from "@/components/CareerSimulation";
 import ResearchHub from "@/components/ResearchHub";
+import HackathonCopilot from "@/components/HackathonCopilot";
 
 // Flat tab list (single source of truth for TabId), then grouped separately
 // for nav display (§19: "avoid overcrowding, use dropdowns or grouped
@@ -53,6 +55,7 @@ const TABS = [
   { id: "career", label: "Career & Roadmap", icon: Route },
   { id: "simulation", label: "Career Simulation", icon: FlaskConical },
   { id: "projects", label: "Project Generator", icon: Hammer },
+  { id: "hackathon", label: "Hackathon Copilot", icon: Trophy },
   { id: "skills", label: "Skill Graph", icon: Network },
   { id: "eligibility", label: "AI Eligibility", icon: Sparkles },
   { id: "resume", label: "Resume Analyzer", icon: FileText },
@@ -66,7 +69,7 @@ type TabId = (typeof TABS)[number]["id"];
 const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
   { label: null, ids: ["home"] },
   { label: "Opportunities", ids: ["discover", "map", "research", "planner", "tracker"] },
-  { label: "Career", ids: ["career", "simulation", "projects", "skills", "eligibility", "resume", "mentors"] },
+  { label: "Career", ids: ["career", "simulation", "projects", "hackathon", "skills", "eligibility", "resume", "mentors"] },
   { label: "AI & You", ids: ["copilot", "profile"] },
 ];
 
@@ -280,6 +283,7 @@ export default function Home() {
         {tab === "career" && <Career user={user} />}
         {tab === "simulation" && <CareerSimulation user={user} />}
         {tab === "projects" && <Projects user={user} />}
+        {tab === "hackathon" && <HackathonCopilot />}
         {tab === "skills" && <Skills user={user} />}
         {tab === "eligibility" && <Eligibility user={user} />}
         {tab === "resume" && <ResumeAnalyzer user={user} />}
