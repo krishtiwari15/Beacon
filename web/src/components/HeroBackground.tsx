@@ -1,64 +1,56 @@
 "use client";
 
-import { useEffect, useState } from "react";
+// A wave shape wide enough to tile seamlessly when two copies sit side by
+// side and the pair is scrolled left by exactly 50% of its own width.
+const WAVE_PATH =
+  "M0,60 C150,110 350,10 600,60 C850,110 1050,10 1200,60 L1200,200 L0,200 Z";
 
-type Particle = {
-  left: number;
-  top: number;
-  size: number;
+function WaveLayer({
+  color,
+  opacity,
+  duration,
+  bottom,
+  scale = 1,
+}: {
+  color: string;
+  opacity: number;
   duration: number;
-  delay: number;
-};
+  bottom: number;
+  scale?: number;
+}) {
+  return (
+    <div
+      className="absolute right-0 left-0"
+      style={{ bottom, height: 200 * scale, opacity }}
+    >
+      <div
+        className="flex h-full w-[200%]"
+        style={{ animation: `hero-wave-drift ${duration}s linear infinite` }}
+      >
+        <svg viewBox="0 0 1200 200" preserveAspectRatio="none" className="h-full w-1/2">
+          <path d={WAVE_PATH} fill={color} />
+        </svg>
+        <svg viewBox="0 0 1200 200" preserveAspectRatio="none" className="h-full w-1/2">
+          <path d={WAVE_PATH} fill={color} />
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 export default function HeroBackground() {
-  const [particles, setParticles] = useState<Particle[]>([]);
-
-  useEffect(() => {
-    // Generated client-side only, after mount, so server/client markup matches
-    // (random values would otherwise cause a hydration mismatch).
-    setParticles(
-      Array.from({ length: 36 }).map(() => ({
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        size: 1 + Math.random() * 2,
-        duration: 10 + Math.random() * 14,
-        delay: Math.random() * -20,
-      })),
-    );
-  }, []);
-
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {/* Drifting grid */}
-      <div
-        className="absolute inset-[-50px]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-          animation: "hero-grid-drift 40s linear infinite",
-        }}
-      />
+      {/* Deep ambient glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(30,58,138,0.25),transparent_60%)]" />
 
-      {/* Particle field */}
-      {particles.map((p, i) => (
-        <span
-          key={i}
-          className="absolute rounded-full bg-white"
-          style={{
-            left: `${p.left}%`,
-            top: `${p.top}%`,
-            width: p.size,
-            height: p.size,
-            opacity: 0.4,
-            animation: `hero-particle-float ${p.duration}s ease-in-out infinite`,
-            animationDelay: `${p.delay}s`,
-          }}
-        />
-      ))}
+      {/* Layered undulating waves, back to front */}
+      <WaveLayer color="rgba(30,64,175,0.18)" opacity={1} duration={26} bottom={-40} scale={1.1} />
+      <WaveLayer color="rgba(59,90,190,0.22)" opacity={1} duration={19} bottom={-60} scale={1} />
+      <WaveLayer color="rgba(96,120,220,0.16)" opacity={1} duration={14} bottom={-80} scale={0.9} />
 
       {/* Vignette so content stays legible over the motion */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#080A19_85%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,#080A19_88%)]" />
     </div>
   );
 }
