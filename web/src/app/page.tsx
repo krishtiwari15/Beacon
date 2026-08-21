@@ -10,6 +10,7 @@ import {
   MessagesSquare,
   CalendarClock,
   UserCircle,
+  Route,
   LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -21,10 +22,12 @@ import Eligibility from "@/components/Eligibility";
 import ResumeAnalyzer from "@/components/ResumeAnalyzer";
 import Copilot from "@/components/Copilot";
 import Profile from "@/components/Profile";
+import Career from "@/components/Career";
 
 const TABS = [
   { id: "discover", label: "Discover", icon: Compass },
   { id: "tracker", label: "My Applications", icon: ClipboardList },
+  { id: "career", label: "Career & Roadmap", icon: Route },
   { id: "eligibility", label: "AI Eligibility", icon: Sparkles },
   { id: "resume", label: "Resume Analyzer", icon: FileText },
   { id: "copilot", label: "Career Copilot", icon: MessagesSquare },
@@ -161,6 +164,7 @@ export default function Home() {
       <main className="relative flex-1">
         {tab === "discover" && <Discover user={user} />}
         {tab === "tracker" && <Tracker user={user} />}
+        {tab === "career" && <Career user={user} />}
         {tab === "eligibility" && <Eligibility user={user} />}
         {tab === "resume" && <ResumeAnalyzer user={user} />}
         {tab === "copilot" && <Copilot user={user} />}
