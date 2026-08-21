@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Plus_Jakarta_Sans } from "next/font/google";
+import { Cormorant_Garamond, Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
 
 const garamond = Cormorant_Garamond({
@@ -15,6 +15,12 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-jakarta",
 });
 
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-inter",
+});
+
 export const metadata: Metadata = {
   title: "Beacon",
   description: "Discover and track student opportunities.",
@@ -26,7 +32,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${garamond.variable} ${jakarta.variable}`}>
+    <html lang="en" className={`${garamond.variable} ${jakarta.variable} ${inter.variable}`}>
       <body className="flex min-h-screen flex-col antialiased">{children}</body>
     </html>
   );
