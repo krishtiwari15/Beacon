@@ -54,14 +54,14 @@ export default function Tracker({ user }: { user: User }) {
   }
 
   if (loading) return <CardSkeleton count={2} />;
-  if (error) return <p className="p-8 text-sm text-red-400">⚠️ {error}</p>;
+  if (error) return <p className="p-8 text-sm text-red-600">{error}</p>;
 
   if (rows.length === 0) {
     return (
       <div className="mx-auto w-full max-w-5xl px-6 py-8">
-        <div className="rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] p-12 text-center backdrop-blur-[20px]">
-          <div className="text-lg font-[450] text-white">No applications yet</div>
-          <div className="mt-1 text-sm text-zinc-400">
+        <div className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-12 text-center backdrop-blur-md">
+          <div className="text-lg font-semibold text-[var(--text)]">No applications yet</div>
+          <div className="mt-1 text-sm text-[var(--text-muted)]">
             Go to Discover and save some opportunities to start tracking.
           </div>
         </div>
@@ -86,14 +86,14 @@ export default function Tracker({ user }: { user: User }) {
     <div className="mx-auto w-full max-w-5xl px-6 py-8">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map(([num, label]) => (
-          <div key={label} className="rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] p-4 text-center backdrop-blur-[20px] transition-shadow duration-200 hover:shadow-[0_0_16px_rgba(255,255,255,0.06)]">
-            <div className="text-2xl font-[450] text-white">{num}</div>
-            <div className="mt-1 text-[11px] tracking-wider text-white/50 uppercase">{label}</div>
+          <div key={label} className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-4 text-center backdrop-blur-md transition-shadow duration-200 hover:shadow-md">
+            <div className="text-2xl font-semibold text-[var(--text)]">{num}</div>
+            <div className="mt-1 text-[11px] tracking-wider text-[var(--text-muted)] uppercase">{label}</div>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 border-l-2 border-white pl-3 text-sm font-[450] tracking-widest text-white uppercase">
+      <div className="mt-6 border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
         Your pipeline
       </div>
 
@@ -103,7 +103,7 @@ export default function Tracker({ user }: { user: User }) {
             <select
               value={r.status}
               onChange={(e) => updateStatus(r.id, e.target.value as SavedStatus)}
-              className="cursor-pointer rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-sm text-white outline-none transition-colors duration-200 focus:border-white/40"
+              className="cursor-pointer rounded-md border border-[var(--border)] bg-black/[0.02] px-2 py-1.5 text-sm text-[var(--text)] outline-none transition-colors duration-200 focus:border-[var(--accent)]"
             >
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s}>

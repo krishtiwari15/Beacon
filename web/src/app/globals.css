@@ -1,29 +1,32 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
-  --beacon-bg: #080a19;
-  --beacon-panel: rgba(17, 16, 15, 0.35);
-  --beacon-panel-solid: #0d0e1a;
-  --beacon-border: rgba(255, 255, 255, 0.08);
-  --beacon-accent: #e9e9e9;
-  --beacon-accent-text: #0a0707;
-  --beacon-text: #ffffff;
-  --beacon-muted: rgba(255, 255, 255, 0.7);
+  --bg: #f4f7f0;
+  --bg-deep: #e7edde;
+  --surface: rgba(255, 255, 255, 0.7);
+  --surface-solid: #ffffff;
+  --border: rgba(31, 42, 29, 0.1);
+  --text: #1f2a1d;
+  --text-muted: #4b5b47;
+  --heading: #336443;
+  --heading-accent: #85ab8b;
+  --accent: #1f2a1d;
+  --accent-hover: #2a3827;
+  --accent-text: #ffffff;
+  --cta: #3d5638;
+  --cta-hover: #2d4228;
 }
 
 body {
-  background: var(--beacon-bg);
-  color: var(--beacon-text);
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+  color: var(--text);
   font-family: var(--font-sans);
-  font-weight: 450;
 }
 
-/* Entrance-animation system */
 @keyframes fade-up {
   from {
     opacity: 0;
@@ -34,7 +37,6 @@ body {
     transform: translateY(0);
   }
 }
-
 @keyframes fade-down {
   from {
     opacity: 0;
@@ -45,78 +47,43 @@ body {
     transform: translateY(0);
   }
 }
-
-@keyframes fade-left {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes fade-right {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
 @keyframes fade-scale {
   from {
     opacity: 0;
-    transform: scale(0.92);
+    transform: scale(0.94);
   }
   to {
     opacity: 1;
     transform: scale(1);
   }
 }
-
-@keyframes bar-grow {
-  from {
-    transform: scaleY(0);
-    opacity: 0;
-  }
-  to {
-    transform: scaleY(1);
-    opacity: 1;
-  }
-}
-
 .animate-fade-up {
   animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .animate-fade-down {
   animation: fade-down 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.animate-fade-left {
-  animation: fade-left 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.animate-fade-right {
-  animation: fade-right 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
 .animate-fade-scale {
   animation: fade-scale 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.animate-bar-grow {
-  animation: bar-grow 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
-}
 
-/* Hero background motion: undulating ocean waves */
-@keyframes hero-wave-drift {
-  from {
-    transform: translateX(0);
+/* Ambient background motion: slow drifting sage blobs (no external video) */
+@keyframes drift-a {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
   }
-  to {
-    transform: translateX(-50%);
+  50% {
+    transform: translate(4%, 6%) scale(1.08);
+  }
+}
+@keyframes drift-b {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-5%, -4%) scale(1.05);
   }
 }
 

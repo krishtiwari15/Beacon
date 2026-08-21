@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 type Tab = "login" | "signup";
 
 const inputClass =
-  "rounded-[12px] border border-white/15 bg-white/5 px-3 py-2.5 text-sm text-white outline-none transition-colors duration-200 placeholder:text-white/40 focus:border-white/40 focus:ring-2 focus:ring-white/20";
+  "rounded-[12px] border border-[var(--border)] bg-black/[0.02] px-3 py-2.5 text-sm text-[var(--text)] outline-none transition-colors duration-200 placeholder:text-[var(--text-muted)]/60 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15";
 
 export default function AuthForm() {
   const [tab, setTab] = useState<Tab>("login");
@@ -45,7 +45,7 @@ export default function AuthForm() {
 
   return (
     <div>
-      <div className="flex gap-1 rounded-[12px] bg-white/5 p-1">
+      <div className="flex gap-1 rounded-[12px] bg-black/5 p-1">
         {(["login", "signup"] as Tab[]).map((t) => (
           <button
             key={t}
@@ -54,8 +54,8 @@ export default function AuthForm() {
               setError(null);
               setInfo(null);
             }}
-            className={`flex-1 cursor-pointer rounded-[9px] py-1.5 text-sm font-[450] transition-colors duration-200 ${
-              tab === t ? "bg-[#E9E9E9] text-[#0A0707]" : "text-white/60 hover:text-white"
+            className={`flex-1 cursor-pointer rounded-[9px] py-1.5 text-sm font-medium transition-colors duration-200 ${
+              tab === t ? "bg-[var(--accent)] text-white" : "text-[var(--text-muted)] hover:text-[var(--text)]"
             }`}
           >
             {t === "login" ? "Log in" : "Sign up"}
@@ -97,13 +97,13 @@ export default function AuthForm() {
           className={inputClass}
         />
 
-        {error && <p className="text-sm text-red-400">{error}</p>}
-        {info && <p className="text-sm text-emerald-400">{info}</p>}
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        {info && <p className="text-sm text-emerald-700">{info}</p>}
 
         <button
           type="submit"
           disabled={busy}
-          className="mt-1 h-[46px] cursor-pointer rounded-[12px] bg-[#E9E9E9] text-sm font-[450] text-[#0A0707] transition-opacity duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-1 h-[46px] cursor-pointer rounded-[12px] bg-[var(--accent)] text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "Please wait…" : tab === "login" ? "Log In" : "Create Account"}
         </button>

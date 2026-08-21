@@ -97,7 +97,7 @@ export default function Discover({ user }: { user: User }) {
   }
 
   if (error) {
-    return <p className="p-8 text-sm text-red-400">⚠️ Could not load opportunities: {error}</p>;
+    return <p className="p-8 text-sm text-red-600">Could not load opportunities: {error}</p>;
   }
 
   return (
@@ -107,14 +107,14 @@ export default function Discover({ user }: { user: User }) {
         placeholder="Search title, company, skill, keyword…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-colors duration-200 focus:border-white/40 focus:ring-2 focus:ring-white/20"
+        className="w-full rounded-md border border-[var(--border)] bg-black/[0.02] px-3 py-2 text-sm text-[var(--text)] outline-none transition-colors duration-200 focus:border-[var(--accent)] focus:ring-2 focus:ring-[var(--accent)]/15"
       />
 
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="cursor-pointer rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-colors duration-200 focus:border-white/40"
+          className="cursor-pointer rounded-md border border-[var(--border)] bg-black/[0.02] px-3 py-2 text-sm text-[var(--text)] outline-none transition-colors duration-200 focus:border-[var(--accent)]"
         >
           <option value="">All types</option>
           {types.map((t) => (
@@ -126,7 +126,7 @@ export default function Discover({ user }: { user: User }) {
         <select
           value={modeFilter}
           onChange={(e) => setModeFilter(e.target.value)}
-          className="cursor-pointer rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-colors duration-200 focus:border-white/40"
+          className="cursor-pointer rounded-md border border-[var(--border)] bg-black/[0.02] px-3 py-2 text-sm text-[var(--text)] outline-none transition-colors duration-200 focus:border-[var(--accent)]"
         >
           <option value="">Any work mode</option>
           {modes.map((m) => (
@@ -138,7 +138,7 @@ export default function Discover({ user }: { user: User }) {
         <select
           value={difficultyFilter}
           onChange={(e) => setDifficultyFilter(e.target.value)}
-          className="cursor-pointer rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-colors duration-200 focus:border-white/40"
+          className="cursor-pointer rounded-md border border-[var(--border)] bg-black/[0.02] px-3 py-2 text-sm text-[var(--text)] outline-none transition-colors duration-200 focus:border-[var(--accent)]"
         >
           <option value="">Any level</option>
           <option value="Beginner">Beginner</option>
@@ -147,13 +147,13 @@ export default function Discover({ user }: { user: User }) {
         </select>
       </div>
 
-      <div className="mt-5 border-l-2 border-white pl-3 text-sm font-[450] tracking-widest text-white uppercase">
+      <div className="mt-5 border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
         {filtered.length} {filtered.length === 1 ? "opportunity" : "opportunities"} found
       </div>
 
       <div className="mt-4 flex flex-col gap-4">
         {filtered.length === 0 ? (
-          <div className="rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] p-12 text-center text-white/60 backdrop-blur-[20px]">
+          <div className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-12 text-center text-[var(--text-muted)] backdrop-blur-md">
             No opportunities found
           </div>
         ) : (

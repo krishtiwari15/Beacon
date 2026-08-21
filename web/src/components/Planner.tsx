@@ -23,7 +23,7 @@ export default function Planner() {
   }, []);
 
   if (loading) return <CardSkeleton count={3} />;
-  if (error) return <p className="p-8 text-sm text-red-400">⚠️ {error}</p>;
+  if (error) return <p className="p-8 text-sm text-red-600">{error}</p>;
 
   const dated = opportunities
     .map((o) => ({ o, d: daysUntil(o.deadline) }))
@@ -47,36 +47,36 @@ export default function Planner() {
     <div className="mx-auto w-full max-w-5xl px-6 py-8">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map(([num, label]) => (
-          <div key={label} className="rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] p-4 text-center backdrop-blur-[20px] transition-shadow duration-200 hover:shadow-[0_0_16px_rgba(255,255,255,0.06)]">
-            <div className="text-2xl font-[450] text-white">{num}</div>
-            <div className="mt-1 text-[11px] tracking-wider text-white/50 uppercase">{label}</div>
+          <div key={label} className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-4 text-center backdrop-blur-md transition-shadow duration-200 hover:shadow-md">
+            <div className="text-2xl font-semibold text-[var(--text)]">{num}</div>
+            <div className="mt-1 text-[11px] tracking-wider text-[var(--text-muted)] uppercase">{label}</div>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 border-l-2 border-white pl-3 text-sm font-[450] tracking-widest text-white uppercase">
+      <div className="mt-6 border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
         Upcoming deadlines
       </div>
 
       <div className="mt-4 flex flex-col gap-2">
         {openSorted.length === 0 ? (
-          <div className="rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] p-8 text-center text-sm text-white/50 backdrop-blur-[20px]">
+          <div className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-8 text-center text-sm text-[var(--text-muted)] backdrop-blur-md">
             No upcoming deadlines found.
           </div>
         ) : (
           openSorted.map(({ o, d }) => {
-            const [bar, cls] = d <= 7 ? ["#ff4d4d", "text-red-400"] : d <= 30 ? ["#f5c518", "text-amber-400"] : ["#34c98a", "text-emerald-400"];
+            const [bar, cls] = d <= 7 ? ["#dc2626", "text-red-600"] : d <= 30 ? ["#b58a1f", "text-amber-600"] : ["#2f8a52", "text-emerald-700"];
             const when = d === 1 ? "1 DAY" : `${d} DAYS`;
             return (
-              <div key={o.id} className="flex items-center gap-4 rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] px-4 py-3 backdrop-blur-[20px]">
+              <div key={o.id} className="flex items-center gap-4 rounded-[16px] border border-[var(--border)] bg-[var(--surface)] px-4 py-3 backdrop-blur-md">
                 <div className="h-10 w-1.5 rounded" style={{ background: bar }} />
                 <div className="flex-1">
-                  <div className="font-[450] text-white">{o.title}</div>
-                  <div className="text-xs text-white/40">
+                  <div className="font-medium text-[var(--text)]">{o.title}</div>
+                  <div className="text-xs text-[var(--text-muted)]">
                     {o.organization} · {o.deadline}
                   </div>
                 </div>
-                <div className={`text-right text-sm font-[450] ${cls}`}>
+                <div className={`text-right text-sm font-semibold ${cls}`}>
                   {when}
                   <br />
                   LEFT
