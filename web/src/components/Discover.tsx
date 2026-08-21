@@ -20,6 +20,7 @@ export default function Discover({ user }: { user: User }) {
   const [typeFilter, setTypeFilter] = useState("");
   const [modeFilter, setModeFilter] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("");
+  const [fundedOnly, setFundedOnly] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -118,6 +119,10 @@ export default function Discover({ user }: { user: User }) {
     if (typeFilter && o.type !== typeFilter) return false;
     if (modeFilter && o.work_mode !== modeFilter) return false;
     if (difficultyFilter && o.difficulty !== difficultyFilter) return false;
+    if (fundedOnly) {
+      const stipend = o.stipend || "";
+      if (/unpaid|volunteer|not specified|free/i.test(stipend)) return false;
+    }
     return true;
   });
 
@@ -175,6 +180,16 @@ export default function Discover({ user }: { user: User }) {
           <option value="Advanced">Advanced</option>
         </select>
       </div>
+
+      <label className="mt-3 flex w-fit cursor-pointer items-center gap-2 text-sm text-[var(--text)]">
+        <input
+          type="checkbox"
+          checked={fundedOnly}
+          onChange={(e) => setFundedOnly(e.target.checked)}
+          className="h-4 w-4 cursor-pointer accent-[var(--accent)]"
+        />
+        Paid / funded only
+      </label>
 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
