@@ -64,7 +64,7 @@ export default function Home() {
       {/* Sidebar (desktop) */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] backdrop-blur-md md:flex">
         <div className="border-b border-[var(--border)] px-5 py-6">
-          <span className="text-lg font-semibold tracking-tight text-[var(--text)]">Beacon</span>
+          <span className="font-serif text-lg font-semibold tracking-tight text-[var(--heading)]">Beacon</span>
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 p-3">
@@ -98,7 +98,7 @@ export default function Home() {
       {/* Mobile header + horizontal nav */}
       <div className="flex flex-col border-b border-[var(--border)] bg-[var(--surface)] backdrop-blur-md md:hidden">
         <div className="flex items-center justify-between px-4 py-4">
-          <span className="text-base font-semibold tracking-tight text-[var(--text)]">Beacon</span>
+          <span className="font-serif text-base font-semibold tracking-tight text-[var(--heading)]">Beacon</span>
           <button
             onClick={() => createClient().auth.signOut()}
             className="cursor-pointer rounded-[11px] border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"

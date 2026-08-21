@@ -1,28 +1,25 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-garamond), Georgia, serif;
 }
 
 :root {
-  --bg: #f4f7f0;
-  --bg-deep: #e7edde;
+  --bg: #f5f5f4;
   --surface: rgba(255, 255, 255, 0.7);
   --surface-solid: #ffffff;
-  --border: rgba(31, 42, 29, 0.1);
-  --text: #1f2a1d;
-  --text-muted: #4b5b47;
-  --heading: #336443;
-  --heading-accent: #85ab8b;
-  --accent: #1f2a1d;
-  --accent-hover: #2a3827;
-  --accent-text: #ffffff;
-  --cta: #3d5638;
-  --cta-hover: #2d4228;
+  --border: rgba(6, 44, 33, 0.12);
+  --text: #062c21;
+  --text-muted: rgba(6, 44, 33, 0.7);
+  --heading: #062c21;
+  --accent: #062c21;
+  --accent-hover: #0b3d2c;
+  --accent-soft: #0f6b4f;
 }
 
 body {
-  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-deep) 100%);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
 }
@@ -47,44 +44,29 @@ body {
     transform: translateY(0);
   }
 }
-@keyframes fade-scale {
-  from {
-    opacity: 0;
-    transform: scale(0.94);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 .animate-fade-up {
   animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .animate-fade-down {
   animation: fade-down 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.animate-fade-scale {
-  animation: fade-scale 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
 
-/* Ambient background motion: slow drifting sage blobs (no external video) */
-@keyframes drift-a {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
+@keyframes scroll-dot {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
   }
   50% {
-    transform: translate(4%, 6%) scale(1.08);
+    transform: translateY(8px);
+    opacity: 0.4;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
   }
 }
-@keyframes drift-b {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(-5%, -4%) scale(1.05);
-  }
+.animate-scroll-dot {
+  animation: scroll-dot 2s infinite;
 }
 
 .video-layer {
