@@ -6,9 +6,10 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: profile }, { data: mentorRow }] = await Promise.all([
+  const [{ data: profile }, { data: mentorRow }, { data: assessmentRows }] = await Promise.all([
     supabase.from("profiles").select("*").eq("user_id", id).eq("public_profile", true).maybeSingle(),
     supabase.from("mentors").select("skills").eq("user_id", id).maybeSingle(),
+    supabase.from("skill_assessments").select("skill, score, taken_at").eq("user_id", id).order("taken_at", { ascending: false }),
   ]);
 
   if (!profile) {
@@ -25,7 +26,17 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   }
 
   const p = profile as Profile;
-  const proof = computeProofOfSkill(p.skills ?? [], p.projects ?? [], (mentorRow?.skills as string[] | undefined) ?? []);
+  const latestScoreBySkill = new Map<string, number>();
+  (assessmentRows ?? []).forEach((r) => {
+    const key = (r.skill as string).toLowerCase();
+    if (!latestScoreBySkill.has(key)) latestScoreBySkill.set(key, r.score as number);
+  });
+  const proof = computeProofOfSkill(
+    p.skills ?? [],
+    p.projects ?? [],
+    (mentorRow?.skills as string[] | undefined) ?? [],
+    latestScoreBySkill,
+  );
 
   return (
     <div className="min-h-screen bg-[var(--bg)] px-4 py-12">

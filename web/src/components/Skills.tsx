@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Opportunity } from "@/lib/opportunities";
 import { track } from "@/lib/track";
 import CardSkeleton from "@/components/CardSkeleton";
+import SkillAssessment from "@/components/SkillAssessment";
 
 type Resources = { resources?: string[]; certifications?: string[]; projects?: string[]; careers?: string[]; error?: string };
 
@@ -141,6 +142,10 @@ export default function Skills({ user }: { user: User }) {
             <div className="font-serif text-lg font-semibold text-[var(--heading)]">{selected}</div>
             <div className="mt-1 text-sm text-[var(--text-muted)]">
               Unlocks {matchingOpportunities.length} opportunit{matchingOpportunities.length === 1 ? "y" : "ies"} right now.
+            </div>
+
+            <div className="mt-3">
+              <SkillAssessment skill={selected} />
             </div>
 
             {fetchingResources && !resources ? (

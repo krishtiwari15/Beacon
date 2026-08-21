@@ -6,13 +6,19 @@
 
 export type SkillProof = { skill: string; proficiency: number; proof: string[] };
 
-export function computeProofOfSkill(skills: string[], projects: string[], mentorSkills: string[]): SkillProof[] {
+export function computeProofOfSkill(
+  skills: string[],
+  projects: string[],
+  mentorSkills: string[],
+  assessmentScores: Map<string, number> = new Map(),
+): SkillProof[] {
   const mentorSet = new Set(mentorSkills.map((s) => s.toLowerCase()));
 
   return skills.map((skill) => {
     const lower = skill.toLowerCase();
     const matchingProjects = projects.filter((p) => p.toLowerCase().includes(lower));
     const isMentorSkill = mentorSet.has(lower);
+    const assessmentScore = assessmentScores.get(lower);
 
     const proof: string[] = [];
     if (matchingProjects.length > 0) {
@@ -21,10 +27,16 @@ export function computeProofOfSkill(skills: string[], projects: string[], mentor
     if (isMentorSkill) {
       proof.push("Registered as a Beacon mentor for this skill");
     }
+    if (assessmentScore !== undefined) {
+      proof.push(`Self-assessment score: ${assessmentScore}% (informal, unproctored)`);
+    }
 
     // Base credit for listing the skill at all, plus real evidence on top —
     // capped at 100, never claims more certainty than the evidence supports.
-    const proficiency = Math.min(100, 40 + matchingProjects.length * 25 + (isMentorSkill ? 20 : 0));
+    const proficiency = Math.min(
+      100,
+      40 + matchingProjects.length * 20 + (isMentorSkill ? 15 : 0) + (assessmentScore !== undefined ? Math.round(assessmentScore * 0.25) : 0),
+    );
 
     return { skill, proficiency, proof };
   });
