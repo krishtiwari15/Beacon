@@ -2,6 +2,15 @@
 
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import {
+  Compass,
+  ClipboardList,
+  Sparkles,
+  FileText,
+  MessagesSquare,
+  CalendarClock,
+  LogOut,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Hero from "@/components/Hero";
 import Discover from "@/components/Discover";
@@ -12,12 +21,12 @@ import ResumeAnalyzer from "@/components/ResumeAnalyzer";
 import Copilot from "@/components/Copilot";
 
 const TABS = [
-  { id: "discover", label: "Discover" },
-  { id: "tracker", label: "My Applications" },
-  { id: "eligibility", label: "AI Eligibility" },
-  { id: "resume", label: "Resume Analyzer" },
-  { id: "copilot", label: "Career Copilot" },
-  { id: "planner", label: "Planner" },
+  { id: "discover", label: "Discover", icon: Compass },
+  { id: "tracker", label: "My Applications", icon: ClipboardList },
+  { id: "eligibility", label: "AI Eligibility", icon: Sparkles },
+  { id: "resume", label: "Resume Analyzer", icon: FileText },
+  { id: "copilot", label: "Career Copilot", icon: MessagesSquare },
+  { id: "planner", label: "Planner", icon: CalendarClock },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -58,9 +67,16 @@ export default function Home() {
   }
 
   const name = (user.user_metadata?.name as string | undefined) || user.email || "Explorer";
+  const initial = name.trim().charAt(0).toUpperCase() || "B";
 
   return (
-    <div className="flex min-h-screen flex-1 flex-col bg-[var(--bg)] md:flex-row">
+    <div className="relative flex min-h-screen flex-1 flex-col bg-[var(--bg)] md:flex-row">
+      {/* Ambient background blobs — no video, just slow drifting color */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="animate-drift-a absolute -top-32 -left-24 h-[26rem] w-[26rem] rounded-full bg-[var(--accent-soft)]/[0.10] blur-3xl" />
+        <div className="animate-drift-b absolute -right-24 bottom-0 h-[30rem] w-[30rem] rounded-full bg-[var(--accent)]/[0.08] blur-3xl" />
+      </div>
+
       {/* Sidebar (desktop) */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] backdrop-blur-md md:flex">
         <div className="border-b border-[var(--border)] px-5 py-6">
@@ -68,28 +84,38 @@ export default function Home() {
         </div>
 
         <nav className="flex flex-1 flex-col gap-1 p-3">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              aria-current={tab === t.id ? "page" : undefined}
-              className={`cursor-pointer rounded-[11px] px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 ${
-                tab === t.id
-                  ? "bg-[var(--accent)] text-white"
-                  : "border border-transparent text-[var(--text-muted)] hover:border-[var(--border)] hover:text-[var(--text)]"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+          {TABS.map((t) => {
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                aria-current={tab === t.id ? "page" : undefined}
+                className={`flex cursor-pointer items-center gap-2.5 rounded-[11px] px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 ${
+                  tab === t.id
+                    ? "bg-[var(--accent)] text-white shadow-sm"
+                    : "border border-transparent text-[var(--text-muted)] hover:border-[var(--border)] hover:bg-black/[0.02] hover:text-[var(--text)]"
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
+                {t.label}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="border-t border-[var(--border)] p-3">
-          <div className="truncate px-3 py-1 text-[11px] text-[var(--text-muted)]">{name.toUpperCase()}</div>
+          <div className="flex items-center gap-2.5 px-1 py-1">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-semibold text-white">
+              {initial}
+            </span>
+            <span className="truncate text-xs text-[var(--text-muted)]">{name}</span>
+          </div>
           <button
             onClick={() => createClient().auth.signOut()}
-            className="w-full cursor-pointer rounded-[11px] border border-[var(--border)] px-3 py-2 text-left text-sm text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
+            className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-[11px] border border-[var(--border)] px-3 py-2 text-left text-sm text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
           >
+            <LogOut className="h-4 w-4" strokeWidth={2} />
             Log out
           </button>
         </div>
@@ -98,33 +124,43 @@ export default function Home() {
       {/* Mobile header + horizontal nav */}
       <div className="flex flex-col border-b border-[var(--border)] bg-[var(--surface)] backdrop-blur-md md:hidden">
         <div className="flex items-center justify-between px-4 py-4">
-          <span className="font-serif text-base font-semibold tracking-tight text-[var(--heading)]">Beacon</span>
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[11px] font-semibold text-white">
+              {initial}
+            </span>
+            <span className="font-serif text-base font-semibold tracking-tight text-[var(--heading)]">Beacon</span>
+          </div>
           <button
             onClick={() => createClient().auth.signOut()}
-            className="cursor-pointer rounded-[11px] border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
+            className="flex cursor-pointer items-center gap-1.5 rounded-[11px] border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
           >
+            <LogOut className="h-3.5 w-3.5" strokeWidth={2} />
             Log out
           </button>
         </div>
         <nav className="flex gap-2 overflow-x-auto px-4 pb-3">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => setTab(t.id)}
-              aria-current={tab === t.id ? "page" : undefined}
-              className={`cursor-pointer rounded-[11px] px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-200 ${
-                tab === t.id
-                  ? "bg-[var(--accent)] text-white"
-                  : "border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--text)]"
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+          {TABS.map((t) => {
+            const Icon = t.icon;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                aria-current={tab === t.id ? "page" : undefined}
+                className={`flex cursor-pointer items-center gap-1.5 rounded-[11px] px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-200 ${
+                  tab === t.id
+                    ? "bg-[var(--accent)] text-white"
+                    : "border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--text)]"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+                {t.label}
+              </button>
+            );
+          })}
         </nav>
       </div>
 
-      <main className="flex-1">
+      <main className="relative flex-1">
         {tab === "discover" && <Discover user={user} />}
         {tab === "tracker" && <Tracker user={user} />}
         {tab === "eligibility" && <Eligibility />}

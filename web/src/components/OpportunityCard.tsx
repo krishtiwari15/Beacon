@@ -26,7 +26,7 @@ export default function OpportunityCard({
   const unpaid = /unpaid|volunteer|not specified|free/i.test(stipend);
 
   return (
-    <div className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md transition-all duration-200 hover:border-[var(--accent)]/30 hover:shadow-md">
+    <div className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--accent)]/30 hover:shadow-lg">
       <div className="flex items-center gap-3">
         {opportunity.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -39,7 +39,7 @@ export default function OpportunityCard({
             }}
           />
         ) : null}
-        <span className="text-lg font-semibold text-[var(--text)]">{opportunity.title}</span>
+        <span className="font-serif text-lg font-semibold text-[var(--heading)]">{opportunity.title}</span>
       </div>
       <div className="mt-1 text-xs text-[var(--text-muted)]">
         {opportunity.organization} · {opportunity.category}
