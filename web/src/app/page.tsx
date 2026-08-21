@@ -2,35 +2,9 @@
 
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import {
-  LayoutDashboard,
-  Compass,
-  ClipboardList,
-  Sparkles,
-  FileText,
-  MessagesSquare,
-  CalendarClock,
-  UserCircle,
-  Route,
-  Network,
-  Globe2,
-  Users,
-  Hammer,
-  FlaskConical,
-  Microscope,
-  Trophy,
-  UsersRound,
-  Rocket,
-  MessageCircle,
-  FileBarChart,
-  CalendarCheck2,
-  LogOut,
-  Menu,
-  X,
-  Briefcase,
-  HelpCircle,
-} from "lucide-react";
+import { LogOut, Menu, X, HelpCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { TABS, type TabId } from "@/lib/tabs";
 import Hero from "@/components/Hero";
 import DashboardHome from "@/components/DashboardHome";
 import Discover from "@/components/Discover";
@@ -54,41 +28,10 @@ import Community from "@/components/Community";
 import CareerReport from "@/components/CareerReport";
 import WeeklyReview from "@/components/WeeklyReview";
 import DirectJobs from "@/components/DirectJobs";
-import Guide from "@/components/Guide";
-
-// Flat tab list (single source of truth for TabId), then grouped separately
-// for nav display (§19: "avoid overcrowding, use dropdowns or grouped
-// sections where necessary") instead of one flat 12-item list.
-export const TABS = [
-  { id: "home", label: "Home", icon: LayoutDashboard },
-  { id: "guide", label: "Guide", icon: HelpCircle },
-  { id: "discover", label: "Discover", icon: Compass },
-  { id: "jobs", label: "Direct Jobs", icon: Briefcase },
-  { id: "map", label: "Global Map", icon: Globe2 },
-  { id: "research", label: "Research", icon: Microscope },
-  { id: "planner", label: "Planner", icon: CalendarClock },
-  { id: "tracker", label: "My Applications", icon: ClipboardList },
-  { id: "career", label: "Career & Roadmap", icon: Route },
-  { id: "simulation", label: "Career Simulation", icon: FlaskConical },
-  { id: "projects", label: "Project Generator", icon: Hammer },
-  { id: "hackathon", label: "Hackathon Copilot", icon: Trophy },
-  { id: "startup", label: "Startup Hub", icon: Rocket },
-  { id: "skills", label: "Skill Graph", icon: Network },
-  { id: "eligibility", label: "AI Eligibility", icon: Sparkles },
-  { id: "resume", label: "Resume Analyzer", icon: FileText },
-  { id: "mentors", label: "Mentors", icon: Users },
-  { id: "team", label: "Find Teammates", icon: UsersRound },
-  { id: "community", label: "Community", icon: MessageCircle },
-  { id: "copilot", label: "Career Copilot", icon: MessagesSquare },
-  { id: "report", label: "Career Report", icon: FileBarChart },
-  { id: "weekly", label: "Weekly Review", icon: CalendarCheck2 },
-  { id: "profile", label: "Profile", icon: UserCircle },
-] as const;
-
-export type TabId = (typeof TABS)[number]["id"];
+import FeatureTour from "@/components/FeatureTour";
 
 const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
-  { label: null, ids: ["home", "guide"] },
+  { label: null, ids: ["home"] },
   { label: "Opportunities", ids: ["discover", "jobs", "map", "research", "planner", "tracker"] },
   { label: "Career", ids: ["career", "simulation", "projects", "hackathon", "startup", "skills", "eligibility", "resume"] },
   { label: "Connect", ids: ["mentors", "team", "community"] },
@@ -100,6 +43,7 @@ export default function Home() {
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<TabId>("home");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -116,9 +60,9 @@ export default function Home() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // A brand-new account (no profile row saved yet) lands on the Guide
-  // instead of Home, so first-time users see what Beacon can do before
-  // being dropped into an empty dashboard.
+  // A brand-new account (no profile row saved yet) gets the feature tour
+  // automatically on first login, so nobody is dropped into an empty
+  // dashboard with 20 unexplained sidebar items.
   useEffect(() => {
     if (!user) return;
     const supabase = createClient();
@@ -128,7 +72,7 @@ export default function Home() {
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!data) setTab("guide");
+        if (!data) setTourOpen(true);
       });
   }, [user]);
 
@@ -204,8 +148,15 @@ export default function Home() {
             <span className="truncate text-xs text-[var(--text-muted)]">{name}</span>
           </div>
           <button
+            onClick={() => setTourOpen(true)}
+            className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-[11px] border border-transparent px-3 py-2 text-left text-sm text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--border)] hover:text-[var(--text)]"
+          >
+            <HelpCircle className="h-4 w-4" strokeWidth={2} />
+            Take the tour
+          </button>
+          <button
             onClick={() => createClient().auth.signOut()}
-            className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-[11px] border border-[var(--border)] px-3 py-2 text-left text-sm text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
+            className="mt-1 flex w-full cursor-pointer items-center gap-2 rounded-[11px] border border-[var(--border)] px-3 py-2 text-left text-sm text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
           >
             <LogOut className="h-4 w-4" strokeWidth={2} />
             Log out
@@ -302,8 +253,18 @@ export default function Home() {
               <span className="truncate text-xs text-[var(--text-muted)]">{name}</span>
             </div>
             <button
+              onClick={() => {
+                setTourOpen(true);
+                setMenuOpen(false);
+              }}
+              className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-[11px] border border-transparent px-3 py-2 text-left text-sm text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--border)] hover:text-[var(--text)]"
+            >
+              <HelpCircle className="h-4 w-4" strokeWidth={2} />
+              Take the tour
+            </button>
+            <button
               onClick={() => createClient().auth.signOut()}
-              className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-[11px] border border-[var(--border)] px-3 py-2 text-left text-sm text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
+              className="mt-1 flex w-full cursor-pointer items-center gap-2 rounded-[11px] border border-[var(--border)] px-3 py-2 text-left text-sm text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
             >
               <LogOut className="h-4 w-4" strokeWidth={2} />
               Log out
@@ -314,7 +275,6 @@ export default function Home() {
 
       <main className="relative flex-1">
         {tab === "home" && <DashboardHome user={user} />}
-        {tab === "guide" && <Guide onNavigate={setTab} />}
         {tab === "discover" && <Discover user={user} />}
         {tab === "jobs" && <DirectJobs user={user} />}
         {tab === "map" && <GlobalMap />}
@@ -337,6 +297,8 @@ export default function Home() {
         {tab === "planner" && <Planner />}
         {tab === "profile" && <Profile user={user} />}
       </main>
+
+      <FeatureTour open={tourOpen} onClose={() => setTourOpen(false)} onNavigate={setTab} />
     </div>
   );
 }
