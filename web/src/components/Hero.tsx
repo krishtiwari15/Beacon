@@ -5,6 +5,7 @@ import { ChevronDown, Menu, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Animate from "@/components/Animate";
 import AuthModal from "@/components/AuthModal";
+import HeroBackground from "@/components/HeroBackground";
 
 const BAR_HEIGHTS = [
   23, 40, 53, 40, 33, 14, 7, 17, 75, 65, 88, 75, 65, 47, 33, 88, 4, 7, 9, 14, 95, 65, 79, 37, 7, 40,
@@ -101,6 +102,7 @@ export default function Hero() {
 
   return (
     <section className="relative h-screen w-full overflow-hidden bg-[#080A19]">
+      <HeroBackground />
       <div className="relative z-10 flex h-full flex-col">
         <Nav onOpenAuth={() => setAuthOpen(true)} />
 
