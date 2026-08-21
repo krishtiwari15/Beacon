@@ -71,8 +71,8 @@ export default function Home() {
 
   return (
     <div className="relative flex min-h-screen flex-1 flex-col bg-[var(--bg)] md:flex-row">
-      {/* Ambient background blobs — no video, just slow drifting color */}
-      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+      {/* Ambient background: leaf texture + slow drifting color blobs — no video */}
+      <div className="leaf-texture pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="animate-drift-a absolute -top-32 -left-24 h-[26rem] w-[26rem] rounded-full bg-[var(--accent-soft)]/[0.10] blur-3xl" />
         <div className="animate-drift-b absolute -right-24 bottom-0 h-[30rem] w-[30rem] rounded-full bg-[var(--accent)]/[0.08] blur-3xl" />
       </div>

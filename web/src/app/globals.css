@@ -103,6 +103,13 @@ body {
   animation: drift-b 26s ease-in-out infinite;
 }
 
+/* Subtle repeating leaf-sprig texture for the dashboard background */
+.leaf-texture {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='%230f6b4f' stroke-width='1.4' stroke-opacity='0.16'%3E%3Cpath d='M20 28c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M20 28c6 2 10 8 10 14M104 58c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M104 58c6 2 10 8 10 14M52 108c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M52 108c6 2 10 8 10 14M128 128c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M128 128c6 2 10 8 10 14'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 160px 160px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
