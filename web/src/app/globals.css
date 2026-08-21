@@ -77,37 +77,23 @@ body {
   will-change: opacity;
 }
 
-/* Ambient background motion: slow drifting emerald blobs (no video) */
-@keyframes drift-a {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(4%, 6%) scale(1.08);
-  }
-}
-@keyframes drift-b {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(-5%, -4%) scale(1.05);
-  }
-}
-.animate-drift-a {
-  animation: drift-a 22s ease-in-out infinite;
-}
-.animate-drift-b {
-  animation: drift-b 26s ease-in-out infinite;
-}
-
-/* Subtle repeating leaf-sprig texture for the dashboard background */
-.leaf-texture {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='%230f6b4f' stroke-width='1.4' stroke-opacity='0.16'%3E%3Cpath d='M20 28c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M20 28c6 2 10 8 10 14M104 58c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M104 58c6 2 10 8 10 14M52 108c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M52 108c6 2 10 8 10 14M128 128c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M128 128c6 2 10 8 10 14'/%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 160px 160px;
+/* Dashboard ambient background: leaf-sprig texture + two soft color blobs,
+   composed as a single background on the container itself so it always
+   paints (avoids fixed/-z-index stacking ambiguity with sibling surfaces). */
+.dashboard-bg {
+  background-color: var(--bg);
+  background-repeat: repeat, no-repeat, no-repeat;
+  background-size:
+    170px 170px,
+    75% 75%,
+    80% 80%;
+  background-position:
+    0 0,
+    -15% -15%,
+    115% 115%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170' viewBox='0 0 170 170'%3E%3Cg fill='none' stroke='%230f6b4f' stroke-width='2' stroke-opacity='0.34'%3E%3Cpath d='M20 28c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M35 28c6 2 10 8 10 14'/%3E%3Cpath d='M108 60c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M123 60c6 2 10 8 10 14'/%3E%3Cpath d='M54 112c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M69 112c6 2 10 8 10 14'/%3E%3Cpath d='M134 138c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M149 138c6 2 10 8 10 14'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(circle, color-mix(in srgb, var(--accent-soft) 55%, transparent) 0%, transparent 70%),
+    radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent) 0%, transparent 70%);
 }
 
 @media (prefers-reduced-motion: reduce) {
