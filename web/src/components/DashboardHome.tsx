@@ -85,8 +85,8 @@ export default function DashboardHome({ user }: { user: User }) {
 
   const incompleteTasks = (roadmap?.stages ?? []).flatMap((s) => s.tasks.filter((t) => !t.done).map((t) => t.text)).slice(0, 3);
   const savedCount = savedRows.filter((r) => r.status === "saved").length;
-  const applied = savedRows.filter((r) => ["applied", "interview", "rejected", "accepted"].includes(r.status)).length;
-  const interviews = savedRows.filter((r) => r.status === "interview").length;
+  const applied = savedRows.filter((r) => r.status !== "saved").length;
+  const interviews = savedRows.filter((r) => ["interview", "shortlisted", "accepted"].includes(r.status)).length;
   const accepted = savedRows.filter((r) => r.status === "accepted").length;
 
   const nextActions: string[] = [];

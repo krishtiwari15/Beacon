@@ -18,16 +18,51 @@ export type Opportunity = {
   quality_reasons: string[] | null;
 };
 
-export type SavedStatus = "saved" | "applied" | "interview" | "rejected" | "accepted";
+export type SavedStatus =
+  | "saved"
+  | "applied"
+  | "assessment"
+  | "interview"
+  | "shortlisted"
+  | "accepted"
+  | "rejected";
 
-export const STATUS_OPTIONS: SavedStatus[] = ["saved", "applied", "interview", "rejected", "accepted"];
+export const STATUS_OPTIONS: SavedStatus[] = [
+  "saved",
+  "applied",
+  "assessment",
+  "interview",
+  "shortlisted",
+  "accepted",
+  "rejected",
+];
 
 export const STATUS_LABELS: Record<SavedStatus, string> = {
   saved: "📌 Saved",
   applied: "📨 Applied",
+  assessment: "📝 Assessment",
   interview: "🎤 Interview",
+  shortlisted: "⭐ Shortlisted",
+  accepted: "✅ Offer",
   rejected: "❌ Rejected",
-  accepted: "✅ Accepted",
+};
+
+// Funnel order — used to infer "reached this stage" even for rejected
+// applications (via their optional rejection_stage), since we only store
+// current status, not a full stage-history log.
+export const FUNNEL_STAGES: Exclude<SavedStatus, "saved" | "rejected">[] = [
+  "applied",
+  "assessment",
+  "interview",
+  "shortlisted",
+  "accepted",
+];
+export const STAGE_RANK: Record<string, number> = {
+  applied: 1,
+  assessment: 2,
+  interview: 3,
+  shortlisted: 4,
+  accepted: 5,
 };
 
 export const TYPE_COLORS: Record<string, string> = {
