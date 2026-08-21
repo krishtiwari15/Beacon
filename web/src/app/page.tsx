@@ -12,6 +12,9 @@ import {
   CalendarClock,
   UserCircle,
   Route,
+  Network,
+  Globe2,
+  Users,
   LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -25,20 +28,36 @@ import ResumeAnalyzer from "@/components/ResumeAnalyzer";
 import Copilot from "@/components/Copilot";
 import Profile from "@/components/Profile";
 import Career from "@/components/Career";
+import Skills from "@/components/Skills";
+import GlobalMap from "@/components/GlobalMap";
+import Mentors from "@/components/Mentors";
 
+// Flat tab list (single source of truth for TabId), then grouped separately
+// for nav display (§19: "avoid overcrowding, use dropdowns or grouped
+// sections where necessary") instead of one flat 12-item list.
 const TABS = [
   { id: "home", label: "Home", icon: LayoutDashboard },
   { id: "discover", label: "Discover", icon: Compass },
+  { id: "map", label: "Global Map", icon: Globe2 },
+  { id: "planner", label: "Planner", icon: CalendarClock },
   { id: "tracker", label: "My Applications", icon: ClipboardList },
   { id: "career", label: "Career & Roadmap", icon: Route },
+  { id: "skills", label: "Skill Graph", icon: Network },
   { id: "eligibility", label: "AI Eligibility", icon: Sparkles },
   { id: "resume", label: "Resume Analyzer", icon: FileText },
+  { id: "mentors", label: "Mentors", icon: Users },
   { id: "copilot", label: "Career Copilot", icon: MessagesSquare },
-  { id: "planner", label: "Planner", icon: CalendarClock },
   { id: "profile", label: "Profile", icon: UserCircle },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
+
+const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
+  { label: null, ids: ["home"] },
+  { label: "Opportunities", ids: ["discover", "map", "planner", "tracker"] },
+  { label: "Career", ids: ["career", "skills", "eligibility", "resume", "mentors"] },
+  { label: "AI & You", ids: ["copilot", "profile"] },
+];
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -80,32 +99,41 @@ export default function Home() {
 
   return (
     <div className="dashboard-bg relative flex min-h-screen flex-1 flex-col md:flex-row">
-
       {/* Sidebar (desktop) */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)] backdrop-blur-md md:flex">
         <div className="border-b border-[var(--border)] px-5 py-6">
           <span className="font-serif text-lg font-semibold tracking-tight text-[var(--heading)]">Beacon</span>
         </div>
 
-        <nav className="flex flex-1 flex-col gap-1 p-3">
-          {TABS.map((t) => {
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                aria-current={tab === t.id ? "page" : undefined}
-                className={`flex cursor-pointer items-center gap-2.5 rounded-[11px] px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 ${
-                  tab === t.id
-                    ? "bg-[var(--accent)] text-white shadow-sm"
-                    : "border border-transparent text-[var(--text-muted)] hover:border-[var(--border)] hover:bg-black/[0.02] hover:text-[var(--text)]"
-                }`}
-              >
-                <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
-                {t.label}
-              </button>
-            );
-          })}
+        <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+          {NAV_GROUPS.map((group, gi) => (
+            <div key={group.label ?? `g${gi}`} className={gi > 0 ? "mt-3" : undefined}>
+              {group.label && (
+                <div className="px-3 pb-1 text-[10px] font-semibold tracking-widest text-[var(--text-muted)] uppercase">
+                  {group.label}
+                </div>
+              )}
+              {group.ids.map((id) => {
+                const t = TABS.find((x) => x.id === id)!;
+                const Icon = t.icon;
+                return (
+                  <button
+                    key={t.id}
+                    onClick={() => setTab(t.id)}
+                    aria-current={tab === t.id ? "page" : undefined}
+                    className={`flex w-full cursor-pointer items-center gap-2.5 rounded-[11px] px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 ${
+                      tab === t.id
+                        ? "bg-[var(--accent)] text-white shadow-sm"
+                        : "border border-transparent text-[var(--text-muted)] hover:border-[var(--border)] hover:bg-black/[0.02] hover:text-[var(--text)]"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         <div className="border-t border-[var(--border)] p-3">
@@ -167,10 +195,13 @@ export default function Home() {
       <main className="relative flex-1">
         {tab === "home" && <DashboardHome user={user} />}
         {tab === "discover" && <Discover user={user} />}
+        {tab === "map" && <GlobalMap />}
         {tab === "tracker" && <Tracker user={user} />}
         {tab === "career" && <Career user={user} />}
+        {tab === "skills" && <Skills />}
         {tab === "eligibility" && <Eligibility user={user} />}
         {tab === "resume" && <ResumeAnalyzer user={user} />}
+        {tab === "mentors" && <Mentors user={user} />}
         {tab === "copilot" && <Copilot user={user} />}
         {tab === "planner" && <Planner />}
         {tab === "profile" && <Profile user={user} />}
