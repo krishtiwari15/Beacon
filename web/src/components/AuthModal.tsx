@@ -4,7 +4,19 @@ import { useEffect } from "react";
 import { X } from "lucide-react";
 import AuthForm from "@/components/AuthForm";
 
-export default function AuthModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function AuthModal({
+  open,
+  onClose,
+  title = "Welcome to Beacon",
+  subtitle = "Track opportunities, never miss a deadline.",
+  googleRedirectPath = "/",
+}: {
+  open: boolean;
+  onClose: () => void;
+  title?: string;
+  subtitle?: string;
+  googleRedirectPath?: string;
+}) {
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
@@ -36,10 +48,10 @@ export default function AuthModal({ open, onClose }: { open: boolean; onClose: (
         >
           <X className="h-4 w-4" />
         </button>
-        <h2 className="text-xl font-semibold text-[var(--text)]">Welcome to Beacon</h2>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">Track opportunities, never miss a deadline.</p>
+        <h2 className="text-xl font-semibold text-[var(--text)]">{title}</h2>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">{subtitle}</p>
         <div className="mt-5">
-          <AuthForm />
+          <AuthForm googleRedirectPath={googleRedirectPath} />
         </div>
       </div>
     </div>

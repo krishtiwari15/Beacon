@@ -27,6 +27,7 @@ import {
   LogOut,
   Menu,
   X,
+  Briefcase,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Hero from "@/components/Hero";
@@ -51,6 +52,7 @@ import StartupHub from "@/components/StartupHub";
 import Community from "@/components/Community";
 import CareerReport from "@/components/CareerReport";
 import WeeklyReview from "@/components/WeeklyReview";
+import DirectJobs from "@/components/DirectJobs";
 
 // Flat tab list (single source of truth for TabId), then grouped separately
 // for nav display (§19: "avoid overcrowding, use dropdowns or grouped
@@ -58,6 +60,7 @@ import WeeklyReview from "@/components/WeeklyReview";
 const TABS = [
   { id: "home", label: "Home", icon: LayoutDashboard },
   { id: "discover", label: "Discover", icon: Compass },
+  { id: "jobs", label: "Direct Jobs", icon: Briefcase },
   { id: "map", label: "Global Map", icon: Globe2 },
   { id: "research", label: "Research", icon: Microscope },
   { id: "planner", label: "Planner", icon: CalendarClock },
@@ -83,7 +86,7 @@ type TabId = (typeof TABS)[number]["id"];
 
 const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
   { label: null, ids: ["home"] },
-  { label: "Opportunities", ids: ["discover", "map", "research", "planner", "tracker"] },
+  { label: "Opportunities", ids: ["discover", "jobs", "map", "research", "planner", "tracker"] },
   { label: "Career", ids: ["career", "simulation", "projects", "hackathon", "startup", "skills", "eligibility", "resume"] },
   { label: "Connect", ids: ["mentors", "team", "community"] },
   { label: "AI & You", ids: ["copilot", "report", "weekly", "profile"] },
@@ -293,6 +296,7 @@ export default function Home() {
       <main className="relative flex-1">
         {tab === "home" && <DashboardHome user={user} />}
         {tab === "discover" && <Discover user={user} />}
+        {tab === "jobs" && <DirectJobs user={user} />}
         {tab === "map" && <GlobalMap />}
         {tab === "research" && <ResearchHub user={user} />}
         {tab === "tracker" && <Tracker user={user} />}

@@ -57,6 +57,12 @@ export default function Hero() {
         </div>
 
         <div className="flex items-center gap-3 text-[#2d3a2a] sm:gap-6">
+          <a
+            href="/employer"
+            className="hidden cursor-pointer text-sm font-medium transition-opacity hover:opacity-80 sm:block"
+          >
+            For Employers
+          </a>
           <button
             onClick={onOpenAuth}
             className="hidden cursor-pointer items-center gap-2 text-sm font-medium transition-opacity hover:opacity-80 sm:flex"
