@@ -17,6 +17,8 @@ import {
   Users,
   Hammer,
   LogOut,
+  Menu,
+  X,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Hero from "@/components/Hero";
@@ -66,6 +68,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<TabId>("home");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -81,6 +84,13 @@ export default function Home() {
 
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
 
   if (!ready) {
     return (
@@ -156,43 +166,103 @@ export default function Home() {
         </div>
       </aside>
 
-      {/* Mobile header + horizontal nav */}
-      <div className="flex flex-col border-b border-[var(--border)] bg-[var(--surface)] backdrop-blur-md md:hidden">
-        <div className="flex items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[11px] font-semibold text-white">
-              {initial}
-            </span>
-            <span className="font-serif text-base font-semibold tracking-tight text-[var(--heading)]">Beacon</span>
-          </div>
-          <button
-            onClick={() => createClient().auth.signOut()}
-            className="flex cursor-pointer items-center gap-1.5 rounded-[11px] border border-[var(--border)] px-3 py-1.5 text-xs text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
-          >
-            <LogOut className="h-3.5 w-3.5" strokeWidth={2} />
-            Log out
-          </button>
+      {/* Mobile header: current tab + hamburger menu (was a 13-item
+          horizontal scroll strip — replaced with a grouped slide-in drawer
+          so mobile isn't showing every feature at once). */}
+      <div className="flex items-center justify-between border-b border-[var(--border)] bg-[var(--surface)] px-4 py-4 backdrop-blur-md md:hidden">
+        <div className="flex items-center gap-2.5">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-[11px] font-semibold text-white">
+            {initial}
+          </span>
+          <span className="text-sm font-semibold text-[var(--text)]">
+            {TABS.find((t) => t.id === tab)?.label ?? "Beacon"}
+          </span>
         </div>
-        <nav className="flex gap-2 overflow-x-auto px-4 pb-3">
-          {TABS.map((t) => {
-            const Icon = t.icon;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                aria-current={tab === t.id ? "page" : undefined}
-                className={`flex cursor-pointer items-center gap-1.5 rounded-[11px] px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-200 ${
-                  tab === t.id
-                    ? "bg-[var(--accent)] text-white"
-                    : "border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--accent)] hover:text-[var(--text)]"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
-                {t.label}
-              </button>
-            );
-          })}
-        </nav>
+        <button
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open menu"
+          className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[var(--border)] text-[var(--text)] transition-colors duration-200 hover:border-[var(--accent)]"
+        >
+          <Menu className="h-5 w-5" strokeWidth={2} />
+        </button>
+      </div>
+
+      {/* Mobile nav drawer */}
+      <div
+        onClick={() => setMenuOpen(false)}
+        className={`fixed inset-0 z-30 transition-opacity duration-300 md:hidden ${
+          menuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
+        }`}
+      >
+        <div className="absolute inset-0 bg-[var(--text)]/40 backdrop-blur-sm" />
+      </div>
+      <div
+        className={`fixed top-0 right-0 bottom-0 z-30 w-[82%] max-w-sm bg-[var(--surface-solid)] shadow-2xl backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:hidden ${
+          menuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex h-full flex-col">
+          <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-5">
+            <span className="font-serif text-lg font-semibold tracking-tight text-[var(--heading)]">Beacon</span>
+            <button
+              onClick={() => setMenuOpen(false)}
+              aria-label="Close menu"
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full text-[var(--text)] hover:bg-black/5"
+            >
+              <X className="h-5 w-5" strokeWidth={2} />
+            </button>
+          </div>
+
+          <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+            {NAV_GROUPS.map((group, gi) => (
+              <div key={group.label ?? `mg${gi}`} className={gi > 0 ? "mt-3" : undefined}>
+                {group.label && (
+                  <div className="px-3 pb-1 text-[10px] font-semibold tracking-widest text-[var(--text-muted)] uppercase">
+                    {group.label}
+                  </div>
+                )}
+                {group.ids.map((id) => {
+                  const t = TABS.find((x) => x.id === id)!;
+                  const Icon = t.icon;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => {
+                        setTab(t.id);
+                        setMenuOpen(false);
+                      }}
+                      aria-current={tab === t.id ? "page" : undefined}
+                      className={`flex w-full cursor-pointer items-center gap-2.5 rounded-[11px] px-3 py-2.5 text-left text-sm font-medium transition-all duration-200 ${
+                        tab === t.id
+                          ? "bg-[var(--accent)] text-white shadow-sm"
+                          : "border border-transparent text-[var(--text-muted)] hover:bg-black/[0.02] hover:text-[var(--text)]"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
+                      {t.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </nav>
+
+          <div className="border-t border-[var(--border)] p-3">
+            <div className="flex items-center gap-2.5 px-1 py-1">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--accent)] text-xs font-semibold text-white">
+                {initial}
+              </span>
+              <span className="truncate text-xs text-[var(--text-muted)]">{name}</span>
+            </div>
+            <button
+              onClick={() => createClient().auth.signOut()}
+              className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-[11px] border border-[var(--border)] px-3 py-2 text-left text-sm text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)] hover:text-[var(--text)]"
+            >
+              <LogOut className="h-4 w-4" strokeWidth={2} />
+              Log out
+            </button>
+          </div>
+        </div>
       </div>
 
       <main className="relative flex-1">
