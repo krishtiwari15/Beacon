@@ -28,6 +28,7 @@ import {
   Menu,
   X,
   Briefcase,
+  HelpCircle,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Hero from "@/components/Hero";
@@ -53,12 +54,14 @@ import Community from "@/components/Community";
 import CareerReport from "@/components/CareerReport";
 import WeeklyReview from "@/components/WeeklyReview";
 import DirectJobs from "@/components/DirectJobs";
+import Guide from "@/components/Guide";
 
 // Flat tab list (single source of truth for TabId), then grouped separately
 // for nav display (§19: "avoid overcrowding, use dropdowns or grouped
 // sections where necessary") instead of one flat 12-item list.
-const TABS = [
+export const TABS = [
   { id: "home", label: "Home", icon: LayoutDashboard },
+  { id: "guide", label: "Guide", icon: HelpCircle },
   { id: "discover", label: "Discover", icon: Compass },
   { id: "jobs", label: "Direct Jobs", icon: Briefcase },
   { id: "map", label: "Global Map", icon: Globe2 },
@@ -82,10 +85,10 @@ const TABS = [
   { id: "profile", label: "Profile", icon: UserCircle },
 ] as const;
 
-type TabId = (typeof TABS)[number]["id"];
+export type TabId = (typeof TABS)[number]["id"];
 
 const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
-  { label: null, ids: ["home"] },
+  { label: null, ids: ["home", "guide"] },
   { label: "Opportunities", ids: ["discover", "jobs", "map", "research", "planner", "tracker"] },
   { label: "Career", ids: ["career", "simulation", "projects", "hackathon", "startup", "skills", "eligibility", "resume"] },
   { label: "Connect", ids: ["mentors", "team", "community"] },
@@ -112,6 +115,22 @@ export default function Home() {
 
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // A brand-new account (no profile row saved yet) lands on the Guide
+  // instead of Home, so first-time users see what Beacon can do before
+  // being dropped into an empty dashboard.
+  useEffect(() => {
+    if (!user) return;
+    const supabase = createClient();
+    supabase
+      .from("profiles")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!data) setTab("guide");
+      });
+  }, [user]);
 
   useEffect(() => {
     document.body.style.overflow = menuOpen ? "hidden" : "";
@@ -295,6 +314,7 @@ export default function Home() {
 
       <main className="relative flex-1">
         {tab === "home" && <DashboardHome user={user} />}
+        {tab === "guide" && <Guide onNavigate={setTab} />}
         {tab === "discover" && <Discover user={user} />}
         {tab === "jobs" && <DirectJobs user={user} />}
         {tab === "map" && <GlobalMap />}
