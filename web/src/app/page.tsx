@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import {
+  LayoutDashboard,
   Compass,
   ClipboardList,
   Sparkles,
@@ -15,6 +16,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import Hero from "@/components/Hero";
+import DashboardHome from "@/components/DashboardHome";
 import Discover from "@/components/Discover";
 import Tracker from "@/components/Tracker";
 import Planner from "@/components/Planner";
@@ -25,6 +27,7 @@ import Profile from "@/components/Profile";
 import Career from "@/components/Career";
 
 const TABS = [
+  { id: "home", label: "Home", icon: LayoutDashboard },
   { id: "discover", label: "Discover", icon: Compass },
   { id: "tracker", label: "My Applications", icon: ClipboardList },
   { id: "career", label: "Career & Roadmap", icon: Route },
@@ -40,7 +43,7 @@ type TabId = (typeof TABS)[number]["id"];
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [ready, setReady] = useState(false);
-  const [tab, setTab] = useState<TabId>("discover");
+  const [tab, setTab] = useState<TabId>("home");
 
   useEffect(() => {
     const supabase = createClient();
@@ -162,6 +165,7 @@ export default function Home() {
       </div>
 
       <main className="relative flex-1">
+        {tab === "home" && <DashboardHome user={user} />}
         {tab === "discover" && <Discover user={user} />}
         {tab === "tracker" && <Tracker user={user} />}
         {tab === "career" && <Career user={user} />}
