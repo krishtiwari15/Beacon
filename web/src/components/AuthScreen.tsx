@@ -44,7 +44,7 @@ export default function AuthScreen() {
     <div className="flex flex-1 items-center justify-center bg-[#0d0d0d] px-4">
       <div className="w-full max-w-sm">
         <div className="rounded border border-[#262626] border-t-4 border-t-[#f5c518] bg-[#131313] p-8">
-          <h1 className="text-3xl font-black tracking-widest text-[#f5c518] uppercase">
+          <h1 className="font-display text-3xl font-black tracking-widest text-[#f5c518] uppercase">
             🛰️ Beacon
           </h1>
           <p className="mt-2 font-mono text-sm text-zinc-500">
@@ -60,7 +60,7 @@ export default function AuthScreen() {
                   setError(null);
                   setInfo(null);
                 }}
-                className={`flex-1 rounded-md py-1.5 text-sm font-medium transition-colors ${
+                className={`flex-1 cursor-pointer rounded-md py-1.5 text-sm font-medium transition-colors duration-200 ${
                   tab === t
                     ? "bg-[#f5c518] text-black"
                     : "text-zinc-400 hover:text-zinc-200"
@@ -85,7 +85,7 @@ export default function AuthScreen() {
                 placeholder="Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]"
+                className="rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30"
               />
             )}
             <input
@@ -111,7 +111,7 @@ export default function AuthScreen() {
             <button
               type="submit"
               disabled={busy}
-              className="mt-1 rounded-md bg-[#f5c518] py-2 text-sm font-bold text-black transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="mt-1 cursor-pointer rounded-md bg-[#f5c518] py-2 text-sm font-bold text-black transition-opacity duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? "Please wait…" : tab === "login" ? "Log In" : "Create Account"}
             </button>

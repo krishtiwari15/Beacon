@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Opportunity, daysUntil } from "@/lib/opportunities";
+import CardSkeleton from "@/components/CardSkeleton";
 
 export default function Planner() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -21,7 +22,7 @@ export default function Planner() {
       });
   }, []);
 
-  if (loading) return <p className="p-8 text-sm text-zinc-500">Loading planner…</p>;
+  if (loading) return <CardSkeleton count={3} />;
   if (error) return <p className="p-8 text-sm text-red-400">⚠️ {error}</p>;
 
   const dated = opportunities

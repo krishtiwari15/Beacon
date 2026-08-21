@@ -53,14 +53,14 @@ export default function Copilot({ user }: { user: User }) {
       </p>
 
       <form onSubmit={submit} className="mt-5 grid grid-cols-1 gap-3 rounded border border-[#262626] bg-[#141414] p-5 sm:grid-cols-2">
-        <input value={education} onChange={(e) => setEducation(e.target.value)} placeholder="Education / Degree, e.g. BCA, 2nd year" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]" />
-        <input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="Your skills, e.g. python, html, sql" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]" />
-        <input value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="Your interests, e.g. AI, web dev" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]" />
-        <input value={goals} onChange={(e) => setGoals(e.target.value)} placeholder="Your goals, e.g. land a remote internship" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]" />
+        <input value={education} onChange={(e) => setEducation(e.target.value)} placeholder="Education / Degree, e.g. BCA, 2nd year" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30" />
+        <input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="Your skills, e.g. python, html, sql" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30" />
+        <input value={interests} onChange={(e) => setInterests(e.target.value)} placeholder="Your interests, e.g. AI, web dev" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30" />
+        <input value={goals} onChange={(e) => setGoals(e.target.value)} placeholder="Your goals, e.g. land a remote internship" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30" />
         <button
           type="submit"
           disabled={busy}
-          className="rounded-md bg-[#f5c518] px-4 py-2 text-sm font-bold text-black disabled:opacity-50 sm:col-span-2"
+          className="cursor-pointer rounded-md bg-[#f5c518] px-4 py-2 text-sm font-bold text-black transition-opacity duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2"
         >
           {busy ? "AI is scanning all opportunities…" : "🧭 Find My Best Matches"}
         </button>

@@ -45,7 +45,10 @@ export default function Home() {
   if (!ready) {
     return (
       <div className="flex flex-1 items-center justify-center bg-[#0d0d0d]">
-        <p className="text-sm text-zinc-500">Loading…</p>
+        <div className="flex items-center gap-2 font-mono text-sm text-zinc-500">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-[#f5c518]" />
+          Booting Beacon…
+        </div>
       </div>
     );
   }
@@ -60,7 +63,7 @@ export default function Home() {
     <div className="flex flex-1 flex-col bg-[#0d0d0d]">
       <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 pt-8">
         <div className="rounded border border-[#262626] border-t-4 border-t-[#f5c518] bg-[#131313] px-6 py-5">
-          <h1 className="text-2xl font-black tracking-widest text-[#f5c518] uppercase">
+          <h1 className="font-display text-2xl font-black tracking-widest text-[#f5c518] uppercase">
             🛰️ Beacon
           </h1>
           <p className="mt-1 font-mono text-sm text-zinc-500">
@@ -69,18 +72,19 @@ export default function Home() {
         </div>
         <button
           onClick={() => createClient().auth.signOut()}
-          className="rounded-md border border-zinc-600 px-3 py-1.5 text-sm font-medium text-zinc-300 hover:border-[#f5c518] hover:text-[#f5c518]"
+          className="cursor-pointer rounded-md border border-zinc-600 px-3 py-1.5 text-sm font-medium text-zinc-300 transition-colors duration-200 hover:border-[#f5c518] hover:text-[#f5c518]"
         >
           🚪 Log out
         </button>
       </header>
 
-      <nav className="mx-auto mt-6 flex w-full max-w-5xl flex-wrap gap-2 px-6">
+      <nav className="mx-auto mt-6 flex w-full max-w-5xl gap-2 overflow-x-auto px-6 pb-1">
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+            aria-current={tab === t.id ? "page" : undefined}
+            className={`cursor-pointer whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-200 ${
               tab === t.id
                 ? "bg-[#f5c518] text-black"
                 : "border border-[#2a2a2a] text-zinc-300 hover:border-[#f5c518] hover:text-[#f5c518]"

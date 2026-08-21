@@ -26,7 +26,7 @@ export default function OpportunityCard({
   const unpaid = /unpaid|volunteer|not specified|free/i.test(stipend);
 
   return (
-    <div className="rounded border border-[#262626] bg-[#141414] p-5">
+    <div className="rounded border border-[#262626] bg-[#141414] p-5 transition-colors duration-200 hover:border-[#3a3a3a]">
       <div className="flex items-center gap-3">
         {opportunity.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -102,14 +102,14 @@ export default function OpportunityCard({
             href={opportunity.source_url}
             target="_blank"
             rel="noreferrer"
-            className="rounded-md border border-zinc-600 px-3 py-1.5 text-sm text-zinc-200 hover:border-[#f5c518] hover:text-[#f5c518]"
+            className="cursor-pointer rounded-md border border-zinc-600 px-3 py-1.5 text-sm text-zinc-200 transition-colors duration-200 hover:border-[#f5c518] hover:text-[#f5c518]"
           >
             Apply ↗
           </a>
         )}
         <button
           onClick={onToggleSave}
-          className={`rounded-md px-3 py-1.5 text-sm font-medium ${
+          className={`cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-colors duration-200 ${
             removeMode
               ? "border border-red-600/50 text-red-400 hover:bg-red-500/10"
               : saved

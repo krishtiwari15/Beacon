@@ -5,6 +5,7 @@ import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { Opportunity } from "@/lib/opportunities";
 import OpportunityCard from "@/components/OpportunityCard";
+import CardSkeleton from "@/components/CardSkeleton";
 
 export default function Discover({ user }: { user: User }) {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -92,7 +93,7 @@ export default function Discover({ user }: { user: User }) {
   });
 
   if (loading) {
-    return <p className="p-8 text-sm text-zinc-500">Loading opportunities…</p>;
+    return <CardSkeleton count={4} />;
   }
 
   if (error) {
@@ -106,14 +107,14 @@ export default function Discover({ user }: { user: User }) {
         placeholder="Search title, company, skill, keyword…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]"
+        className="w-full rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30"
       />
 
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100"
+          className="cursor-pointer rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518]"
         >
           <option value="">All types</option>
           {types.map((t) => (
@@ -125,7 +126,7 @@ export default function Discover({ user }: { user: User }) {
         <select
           value={modeFilter}
           onChange={(e) => setModeFilter(e.target.value)}
-          className="rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100"
+          className="cursor-pointer rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518]"
         >
           <option value="">Any work mode</option>
           {modes.map((m) => (
@@ -137,7 +138,7 @@ export default function Discover({ user }: { user: User }) {
         <select
           value={difficultyFilter}
           onChange={(e) => setDifficultyFilter(e.target.value)}
-          className="rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100"
+          className="cursor-pointer rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518]"
         >
           <option value="">Any level</option>
           <option value="Beginner">Beginner</option>

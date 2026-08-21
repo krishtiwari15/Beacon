@@ -5,6 +5,7 @@ import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { Opportunity, STATUS_LABELS, STATUS_OPTIONS, SavedStatus } from "@/lib/opportunities";
 import OpportunityCard from "@/components/OpportunityCard";
+import CardSkeleton from "@/components/CardSkeleton";
 
 type SavedRow = {
   id: number;
@@ -52,7 +53,7 @@ export default function Tracker({ user }: { user: User }) {
     await supabase.from("saved_opportunities").delete().eq("id", savedId);
   }
 
-  if (loading) return <p className="p-8 text-sm text-zinc-500">Loading your applications…</p>;
+  if (loading) return <CardSkeleton count={2} />;
   if (error) return <p className="p-8 text-sm text-red-400">⚠️ {error}</p>;
 
   if (rows.length === 0) {
@@ -102,7 +103,7 @@ export default function Tracker({ user }: { user: User }) {
             <select
               value={r.status}
               onChange={(e) => updateStatus(r.id, e.target.value as SavedStatus)}
-              className="rounded-md border border-[#2a2a2a] bg-[#141414] px-2 py-1.5 text-sm text-zinc-100"
+              className="cursor-pointer rounded-md border border-[#2a2a2a] bg-[#141414] px-2 py-1.5 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518]"
             >
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s}>

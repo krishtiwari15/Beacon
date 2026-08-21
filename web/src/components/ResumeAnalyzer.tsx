@@ -64,12 +64,12 @@ export default function ResumeAnalyzer() {
           type="file"
           accept="application/pdf"
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="block w-full text-sm text-zinc-300 file:mr-3 file:rounded-md file:border file:border-[#2a2a2a] file:bg-[#0d0d0d] file:px-3 file:py-1.5 file:text-sm file:text-zinc-200"
+          className="block w-full cursor-pointer text-sm text-zinc-300 file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-[#2a2a2a] file:bg-[#0d0d0d] file:px-3 file:py-1.5 file:text-sm file:text-zinc-200 file:transition-colors file:duration-200 hover:file:border-[#f5c518] hover:file:text-[#f5c518]"
         />
         <select
           value={oppId ?? ""}
           onChange={(e) => setOppId(Number(e.target.value))}
-          className="mt-3 w-full rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100"
+          className="mt-3 w-full cursor-pointer rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518]"
         >
           {opportunities.map((o) => (
             <option key={o.id} value={o.id}>
@@ -80,7 +80,7 @@ export default function ResumeAnalyzer() {
         <button
           onClick={analyze}
           disabled={busy || !file || !oppId}
-          className="mt-4 rounded-md bg-[#f5c518] px-4 py-2 text-sm font-bold text-black disabled:opacity-50"
+          className="mt-4 cursor-pointer rounded-md bg-[#f5c518] px-4 py-2 text-sm font-bold text-black transition-opacity duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "Reading your resume…" : "📄 Analyze My Resume"}
         </button>

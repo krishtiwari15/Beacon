@@ -68,17 +68,17 @@ export default function Eligibility() {
 
       <form onSubmit={submit} className="mt-5 rounded border border-[#262626] bg-[#141414] p-5">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <input value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age, e.g. 20" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]" />
-          <input value={cgpa} onChange={(e) => setCgpa(e.target.value)} placeholder="CGPA / GPA, e.g. 8.5" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]" />
-          <input value={education} onChange={(e) => setEducation(e.target.value)} placeholder="Education / Degree, e.g. B.Tech CS, 2nd year" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]" />
-          <input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="Skills, e.g. python, sql, ml" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518]" />
-          <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country, e.g. India" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none focus:border-[#f5c518] sm:col-span-2" />
+          <input value={age} onChange={(e) => setAge(e.target.value)} placeholder="Age, e.g. 20" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30" />
+          <input value={cgpa} onChange={(e) => setCgpa(e.target.value)} placeholder="CGPA / GPA, e.g. 8.5" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30" />
+          <input value={education} onChange={(e) => setEducation(e.target.value)} placeholder="Education / Degree, e.g. B.Tech CS, 2nd year" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30" />
+          <input value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="Skills, e.g. python, sql, ml" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30" />
+          <input value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Country, e.g. India" className="rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30 sm:col-span-2" />
         </div>
 
         <select
           value={oppId ?? ""}
           onChange={(e) => setOppId(Number(e.target.value))}
-          className="mt-3 w-full rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100"
+          className="mt-3 w-full cursor-pointer rounded-md border border-[#2a2a2a] bg-[#0d0d0d] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518]"
         >
           {opportunities.map((o) => (
             <option key={o.id} value={o.id}>
@@ -90,7 +90,7 @@ export default function Eligibility() {
         <button
           type="submit"
           disabled={busy || !oppId}
-          className="mt-4 rounded-md bg-[#f5c518] px-4 py-2 text-sm font-bold text-black disabled:opacity-50"
+          className="mt-4 cursor-pointer rounded-md bg-[#f5c518] px-4 py-2 text-sm font-bold text-black transition-opacity duration-200 hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {busy ? "Asking the AI…" : "🤖 Check My Eligibility"}
         </button>
