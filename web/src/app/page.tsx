@@ -21,6 +21,7 @@ import {
   Trophy,
   UsersRound,
   Rocket,
+  MessageCircle,
   LogOut,
   Menu,
   X,
@@ -45,6 +46,7 @@ import ResearchHub from "@/components/ResearchHub";
 import HackathonCopilot from "@/components/HackathonCopilot";
 import TeamFinder from "@/components/TeamFinder";
 import StartupHub from "@/components/StartupHub";
+import Community from "@/components/Community";
 
 // Flat tab list (single source of truth for TabId), then grouped separately
 // for nav display (§19: "avoid overcrowding, use dropdowns or grouped
@@ -66,6 +68,7 @@ const TABS = [
   { id: "resume", label: "Resume Analyzer", icon: FileText },
   { id: "mentors", label: "Mentors", icon: Users },
   { id: "team", label: "Find Teammates", icon: UsersRound },
+  { id: "community", label: "Community", icon: MessageCircle },
   { id: "copilot", label: "Career Copilot", icon: MessagesSquare },
   { id: "profile", label: "Profile", icon: UserCircle },
 ] as const;
@@ -76,7 +79,7 @@ const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
   { label: null, ids: ["home"] },
   { label: "Opportunities", ids: ["discover", "map", "research", "planner", "tracker"] },
   { label: "Career", ids: ["career", "simulation", "projects", "hackathon", "startup", "skills", "eligibility", "resume"] },
-  { label: "Connect", ids: ["mentors", "team"] },
+  { label: "Connect", ids: ["mentors", "team", "community"] },
   { label: "AI & You", ids: ["copilot", "profile"] },
 ];
 
@@ -297,6 +300,7 @@ export default function Home() {
         {tab === "resume" && <ResumeAnalyzer user={user} />}
         {tab === "mentors" && <Mentors user={user} />}
         {tab === "team" && <TeamFinder user={user} />}
+        {tab === "community" && <Community user={user} />}
         {tab === "copilot" && <Copilot user={user} />}
         {tab === "planner" && <Planner />}
         {tab === "profile" && <Profile user={user} />}
