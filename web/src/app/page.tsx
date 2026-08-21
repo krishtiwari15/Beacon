@@ -20,6 +20,7 @@ import {
   Microscope,
   Trophy,
   UsersRound,
+  Rocket,
   LogOut,
   Menu,
   X,
@@ -43,6 +44,7 @@ import CareerSimulation from "@/components/CareerSimulation";
 import ResearchHub from "@/components/ResearchHub";
 import HackathonCopilot from "@/components/HackathonCopilot";
 import TeamFinder from "@/components/TeamFinder";
+import StartupHub from "@/components/StartupHub";
 
 // Flat tab list (single source of truth for TabId), then grouped separately
 // for nav display (§19: "avoid overcrowding, use dropdowns or grouped
@@ -58,6 +60,7 @@ const TABS = [
   { id: "simulation", label: "Career Simulation", icon: FlaskConical },
   { id: "projects", label: "Project Generator", icon: Hammer },
   { id: "hackathon", label: "Hackathon Copilot", icon: Trophy },
+  { id: "startup", label: "Startup Hub", icon: Rocket },
   { id: "skills", label: "Skill Graph", icon: Network },
   { id: "eligibility", label: "AI Eligibility", icon: Sparkles },
   { id: "resume", label: "Resume Analyzer", icon: FileText },
@@ -72,7 +75,7 @@ type TabId = (typeof TABS)[number]["id"];
 const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
   { label: null, ids: ["home"] },
   { label: "Opportunities", ids: ["discover", "map", "research", "planner", "tracker"] },
-  { label: "Career", ids: ["career", "simulation", "projects", "hackathon", "skills", "eligibility", "resume"] },
+  { label: "Career", ids: ["career", "simulation", "projects", "hackathon", "startup", "skills", "eligibility", "resume"] },
   { label: "Connect", ids: ["mentors", "team"] },
   { label: "AI & You", ids: ["copilot", "profile"] },
 ];
@@ -288,6 +291,7 @@ export default function Home() {
         {tab === "simulation" && <CareerSimulation user={user} />}
         {tab === "projects" && <Projects user={user} />}
         {tab === "hackathon" && <HackathonCopilot />}
+        {tab === "startup" && <StartupHub user={user} />}
         {tab === "skills" && <Skills user={user} />}
         {tab === "eligibility" && <Eligibility user={user} />}
         {tab === "resume" && <ResumeAnalyzer user={user} />}
