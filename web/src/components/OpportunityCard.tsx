@@ -211,12 +211,14 @@ export default function OpportunityCard({
         {children}
       </div>
 
-      <OpportunityIntelligence
-        opportunity={opportunity}
-        matchScore={matchScore}
-        open={strategistOpen}
-        onClose={() => setStrategistOpen(false)}
-      />
+      {strategistOpen && (
+        <OpportunityIntelligence
+          opportunity={opportunity}
+          matchScore={matchScore}
+          open={strategistOpen}
+          onClose={() => setStrategistOpen(false)}
+        />
+      )}
     </div>
   );
 }

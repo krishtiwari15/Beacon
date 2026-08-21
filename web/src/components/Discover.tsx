@@ -22,6 +22,13 @@ export default function Discover({ user }: { user: User }) {
   const [difficultyFilter, setDifficultyFilter] = useState("");
   const [fundedOnly, setFundedOnly] = useState(false);
 
+  // Rendering hundreds of full opportunity cards at once (each with its own
+  // Opportunity Intelligence modal, trust-score computation, etc.) is what
+  // was making the app feel stuck as the collected dataset grew — cap how
+  // many are actually mounted, with a "Load more" button for the rest.
+  const PAGE_SIZE = 20;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
   useEffect(() => {
     const supabase = createClient();
 
@@ -126,6 +133,15 @@ export default function Discover({ user }: { user: User }) {
     return true;
   });
 
+  const visible = filtered.slice(0, visibleCount);
+
+  // Reset how many cards are shown whenever the filtered set changes, so a
+  // narrower search doesn't leave you scrolled past what's now available.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, typeFilter, modeFilter, difficultyFilter, fundedOnly]);
+
   if (loading) {
     return <CardSkeleton count={4} />;
   }
@@ -211,7 +227,7 @@ export default function Discover({ user }: { user: User }) {
             No opportunities found
           </div>
         ) : (
-          filtered.map((o) => (
+          visible.map((o) => (
             <OpportunityCard
               key={o.id}
               opportunity={o}
@@ -222,6 +238,15 @@ export default function Discover({ user }: { user: User }) {
           ))
         )}
       </div>
+
+      {visibleCount < filtered.length && (
+        <button
+          onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
+          className="mt-4 w-full cursor-pointer rounded-[12px] border border-[var(--border)] py-2.5 text-sm font-medium text-[var(--text)] transition-colors duration-200 hover:border-[var(--accent)]"
+        >
+          Load more ({filtered.length - visibleCount} remaining)
+        </button>
+      )}
     </div>
   );
 }
