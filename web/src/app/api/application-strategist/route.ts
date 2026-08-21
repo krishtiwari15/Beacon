@@ -4,6 +4,8 @@ import { prepareApplication } from "@/lib/services/applicationStrategist";
 import type { Opportunity } from "@/lib/opportunities";
 import type { Profile } from "@/lib/profile";
 
+export const maxDuration = 30;
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const {

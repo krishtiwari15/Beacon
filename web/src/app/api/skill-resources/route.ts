@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { suggestSkillResources } from "@/lib/services/skillResources";
 
+export const maxDuration = 30;
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const {

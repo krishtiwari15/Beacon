@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { analyzeResumeForProfile } from "@/lib/services/resumeAnalysis";
 
 export const runtime = "nodejs";
+export const maxDuration = 30;
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();

@@ -12,6 +12,9 @@ function friendlyError(message: string): { error: string } {
   if (msg.includes("api key") || msg.includes("api_key") || msg.includes("unauthorized") || msg.includes("permission")) {
     return { error: "🔑 There's a problem with the AI configuration. Please check the API key setup." };
   }
+  if (msg.includes("abort") || msg.includes("timeout") || msg.includes("timed out")) {
+    return { error: "⏱️ The AI took too long to respond. Please try again." };
+  }
   return { error: "⚠️ The AI couldn't complete this request. Please try again in a moment." };
 }
 
@@ -44,6 +47,10 @@ export async function askAI(prompt: string): Promise<unknown> {
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       }),
+      // Without this, a slow/hanging Groq response (more likely under
+      // concurrent multi-user load) leaves the request open indefinitely —
+      // the UI just spins forever instead of showing a clear error.
+      signal: AbortSignal.timeout(25_000),
     });
 
     if (!res.ok) {

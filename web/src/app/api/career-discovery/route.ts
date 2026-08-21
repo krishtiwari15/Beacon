@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { recommendCareers, type QuizAnswers } from "@/lib/services/careerRecommendation";
 import type { Profile } from "@/lib/profile";
 
+export const maxDuration = 30;
+
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const {

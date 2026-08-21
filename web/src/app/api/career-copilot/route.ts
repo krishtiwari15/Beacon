@@ -4,6 +4,8 @@ import { replyAsCopilot, type ChatMessage } from "@/lib/services/careerCopilot";
 import type { Profile } from "@/lib/profile";
 import type { Roadmap } from "@/lib/roadmap";
 
+export const maxDuration = 30;
+
 export async function GET() {
   const supabase = await createClient();
   const {
