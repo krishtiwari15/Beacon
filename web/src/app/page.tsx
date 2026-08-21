@@ -15,6 +15,7 @@ import {
   Network,
   Globe2,
   Users,
+  Hammer,
   LogOut,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -31,6 +32,7 @@ import Career from "@/components/Career";
 import Skills from "@/components/Skills";
 import GlobalMap from "@/components/GlobalMap";
 import Mentors from "@/components/Mentors";
+import Projects from "@/components/Projects";
 
 // Flat tab list (single source of truth for TabId), then grouped separately
 // for nav display (§19: "avoid overcrowding, use dropdowns or grouped
@@ -42,6 +44,7 @@ const TABS = [
   { id: "planner", label: "Planner", icon: CalendarClock },
   { id: "tracker", label: "My Applications", icon: ClipboardList },
   { id: "career", label: "Career & Roadmap", icon: Route },
+  { id: "projects", label: "Project Generator", icon: Hammer },
   { id: "skills", label: "Skill Graph", icon: Network },
   { id: "eligibility", label: "AI Eligibility", icon: Sparkles },
   { id: "resume", label: "Resume Analyzer", icon: FileText },
@@ -55,7 +58,7 @@ type TabId = (typeof TABS)[number]["id"];
 const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
   { label: null, ids: ["home"] },
   { label: "Opportunities", ids: ["discover", "map", "planner", "tracker"] },
-  { label: "Career", ids: ["career", "skills", "eligibility", "resume", "mentors"] },
+  { label: "Career", ids: ["career", "projects", "skills", "eligibility", "resume", "mentors"] },
   { label: "AI & You", ids: ["copilot", "profile"] },
 ];
 
@@ -198,6 +201,7 @@ export default function Home() {
         {tab === "map" && <GlobalMap />}
         {tab === "tracker" && <Tracker user={user} />}
         {tab === "career" && <Career user={user} />}
+        {tab === "projects" && <Projects user={user} />}
         {tab === "skills" && <Skills />}
         {tab === "eligibility" && <Eligibility user={user} />}
         {tab === "resume" && <ResumeAnalyzer user={user} />}
