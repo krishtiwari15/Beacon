@@ -19,6 +19,7 @@ import {
   FlaskConical,
   Microscope,
   Trophy,
+  UsersRound,
   LogOut,
   Menu,
   X,
@@ -41,6 +42,7 @@ import Projects from "@/components/Projects";
 import CareerSimulation from "@/components/CareerSimulation";
 import ResearchHub from "@/components/ResearchHub";
 import HackathonCopilot from "@/components/HackathonCopilot";
+import TeamFinder from "@/components/TeamFinder";
 
 // Flat tab list (single source of truth for TabId), then grouped separately
 // for nav display (§19: "avoid overcrowding, use dropdowns or grouped
@@ -60,6 +62,7 @@ const TABS = [
   { id: "eligibility", label: "AI Eligibility", icon: Sparkles },
   { id: "resume", label: "Resume Analyzer", icon: FileText },
   { id: "mentors", label: "Mentors", icon: Users },
+  { id: "team", label: "Find Teammates", icon: UsersRound },
   { id: "copilot", label: "Career Copilot", icon: MessagesSquare },
   { id: "profile", label: "Profile", icon: UserCircle },
 ] as const;
@@ -69,7 +72,8 @@ type TabId = (typeof TABS)[number]["id"];
 const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
   { label: null, ids: ["home"] },
   { label: "Opportunities", ids: ["discover", "map", "research", "planner", "tracker"] },
-  { label: "Career", ids: ["career", "simulation", "projects", "hackathon", "skills", "eligibility", "resume", "mentors"] },
+  { label: "Career", ids: ["career", "simulation", "projects", "hackathon", "skills", "eligibility", "resume"] },
+  { label: "Connect", ids: ["mentors", "team"] },
   { label: "AI & You", ids: ["copilot", "profile"] },
 ];
 
@@ -288,6 +292,7 @@ export default function Home() {
         {tab === "eligibility" && <Eligibility user={user} />}
         {tab === "resume" && <ResumeAnalyzer user={user} />}
         {tab === "mentors" && <Mentors user={user} />}
+        {tab === "team" && <TeamFinder user={user} />}
         {tab === "copilot" && <Copilot user={user} />}
         {tab === "planner" && <Planner />}
         {tab === "profile" && <Profile user={user} />}
