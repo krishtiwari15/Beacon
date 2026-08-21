@@ -162,7 +162,7 @@ export default function Home() {
         {tab === "discover" && <Discover user={user} />}
         {tab === "tracker" && <Tracker user={user} />}
         {tab === "eligibility" && <Eligibility user={user} />}
-        {tab === "resume" && <ResumeAnalyzer />}
+        {tab === "resume" && <ResumeAnalyzer user={user} />}
         {tab === "copilot" && <Copilot user={user} />}
         {tab === "planner" && <Planner />}
         {tab === "profile" && <Profile user={user} />}

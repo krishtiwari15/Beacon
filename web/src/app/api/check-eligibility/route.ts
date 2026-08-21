@@ -38,10 +38,11 @@ OPPORTUNITY:
 - Eligibility requirements: ${opp.eligibility}
 - Location: ${opp.location}
 
-Assess whether this student is eligible. Respond with ONLY a valid JSON object,
-no markdown, no extra text, in exactly this format:
+Assess whether this student is eligible. Never invent eligibility requirements
+that weren't stated. Respond with ONLY a valid JSON object, no markdown, no
+extra text, in exactly this format:
 {
-  "verdict": "Eligible" | "Partially Eligible" | "Not Eligible",
+  "verdict": "Eligible" | "Potentially Eligible" | "Not Eligible",
   "reasons": ["short reason 1", "short reason 2"],
   "suggestions": ["short actionable suggestion 1"]
 }`;

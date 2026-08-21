@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import { Opportunity } from "@/lib/opportunities";
+import ProfileResumeAnalysis from "@/components/ProfileResumeAnalysis";
 
 type Result = {
   score?: number;
@@ -13,7 +15,8 @@ type Result = {
   error?: string;
 };
 
-export default function ResumeAnalyzer() {
+export default function ResumeAnalyzer({ user }: { user: User }) {
+  const [mode, setMode] = useState<"opportunity" | "profile">("opportunity");
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [oppId, setOppId] = useState<number | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -55,41 +58,71 @@ export default function ResumeAnalyzer() {
       <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
         AI Resume Analyzer
       </div>
-      <p className="mt-2 text-sm text-[var(--text-muted)]">
-        Upload your resume (PDF), pick an opportunity, and get an AI match score with strengths and gaps.
-      </p>
 
-      <div className="mt-5 rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md">
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          className="block w-full cursor-pointer text-sm text-[var(--text-muted)] file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-[var(--border)] file:bg-white file:px-3 file:py-1.5 file:text-sm file:text-[var(--text)] file:transition-colors file:duration-200 hover:file:border-[var(--accent)]"
-        />
-        <select
-          value={oppId ?? ""}
-          onChange={(e) => setOppId(Number(e.target.value))}
-          className="mt-3 w-full cursor-pointer rounded-md border border-[var(--border)] bg-black/[0.02] px-3 py-2 text-sm text-[var(--text)] outline-none transition-colors duration-200 focus:border-[var(--accent)]"
-        >
-          {opportunities.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.title} — {o.organization}
-            </option>
-          ))}
-        </select>
+      <div className="mt-4 flex gap-2">
         <button
-          onClick={analyze}
-          disabled={busy || !file || !oppId}
-          className="mt-4 h-[46px] cursor-pointer rounded-[12px] bg-[var(--accent)] px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={() => setMode("opportunity")}
+          className={`cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
+            mode === "opportunity"
+              ? "bg-[var(--accent)] text-white"
+              : "border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--accent)]"
+          }`}
         >
-          {busy ? "Reading your resume…" : "Analyze my resume"}
+          Match vs. an opportunity
         </button>
-        {!file && <p className="mt-2 text-xs text-[var(--text-muted)]">Please upload a PDF resume first.</p>}
+        <button
+          onClick={() => setMode("profile")}
+          className={`cursor-pointer rounded-full px-3 py-1.5 text-xs font-medium transition-colors duration-200 ${
+            mode === "profile"
+              ? "bg-[var(--accent)] text-white"
+              : "border border-[var(--border)] text-[var(--text-muted)] hover:border-[var(--accent)]"
+          }`}
+        >
+          Analyze my profile
+        </button>
       </div>
 
-      {result?.error && <p className="mt-4 text-sm text-red-600">{result.error}</p>}
+      {mode === "profile" ? (
+        <ProfileResumeAnalysis user={user} />
+      ) : (
+        <>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">
+            Upload your resume (PDF), pick an opportunity, and get an AI match score with strengths and gaps.
+          </p>
 
-      {result?.summary !== undefined && (
+          <div className="mt-5 rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md">
+            <input
+              type="file"
+              accept="application/pdf"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              className="block w-full cursor-pointer text-sm text-[var(--text-muted)] file:mr-3 file:cursor-pointer file:rounded-md file:border file:border-[var(--border)] file:bg-white file:px-3 file:py-1.5 file:text-sm file:text-[var(--text)] file:transition-colors file:duration-200 hover:file:border-[var(--accent)]"
+            />
+            <select
+              value={oppId ?? ""}
+              onChange={(e) => setOppId(Number(e.target.value))}
+              className="mt-3 w-full cursor-pointer rounded-md border border-[var(--border)] bg-black/[0.02] px-3 py-2 text-sm text-[var(--text)] outline-none transition-colors duration-200 focus:border-[var(--accent)]"
+            >
+              {opportunities.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {o.title} — {o.organization}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={analyze}
+              disabled={busy || !file || !oppId}
+              className="mt-4 h-[46px] cursor-pointer rounded-[12px] bg-[var(--accent)] px-4 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {busy ? "Reading your resume…" : "Analyze my resume"}
+            </button>
+            {!file && <p className="mt-2 text-xs text-[var(--text-muted)]">Please upload a PDF resume first.</p>}
+          </div>
+        </>
+      )}
+
+      {mode === "opportunity" && result?.error && <p className="mt-4 text-sm text-red-600">{result.error}</p>}
+
+      {mode === "opportunity" && result?.summary !== undefined && (
         <div className="mt-5 flex flex-col gap-4 rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md sm:flex-row sm:items-start">
           <div
             className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-4 text-lg font-semibold"

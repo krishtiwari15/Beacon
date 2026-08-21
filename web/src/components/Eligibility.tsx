@@ -15,8 +15,16 @@ type Result = {
 
 const VERDICT_COLORS: Record<string, string> = {
   Eligible: "#2f8a52",
-  "Partially Eligible": "#b58a1f",
+  "Potentially Eligible": "#b58a1f",
+  "Partially Eligible": "#b58a1f", // legacy label, kept in case of stale cached results
   "Not Eligible": "#dc2626",
+};
+
+const VERDICT_ICONS: Record<string, string> = {
+  Eligible: "🟢",
+  "Potentially Eligible": "🟡",
+  "Partially Eligible": "🟡",
+  "Not Eligible": "🔴",
 };
 
 const inputClass =
@@ -131,7 +139,7 @@ export default function Eligibility({ user }: { user: User }) {
           style={{ borderLeftColor: VERDICT_COLORS[result.verdict] ?? "#999" }}
         >
           <div className="text-lg font-semibold" style={{ color: VERDICT_COLORS[result.verdict] ?? "#999" }}>
-            {result.verdict}
+            {VERDICT_ICONS[result.verdict] ?? ""} {result.verdict}
           </div>
           {!!result.reasons?.length && (
             <div className="mt-3">
