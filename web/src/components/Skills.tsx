@@ -7,7 +7,7 @@ import { Opportunity } from "@/lib/opportunities";
 import { track } from "@/lib/track";
 import CardSkeleton from "@/components/CardSkeleton";
 
-type Resources = { resources?: string[]; certifications?: string[]; projects?: string[]; error?: string };
+type Resources = { resources?: string[]; certifications?: string[]; projects?: string[]; careers?: string[]; error?: string };
 
 export default function Skills({ user }: { user: User }) {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
@@ -80,11 +80,11 @@ export default function Skills({ user }: { user: User }) {
   return (
     <div className="mx-auto w-full max-w-5xl px-6 py-8">
       <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
-        Skill → Opportunity Graph
+        Skill → Career Graph
       </div>
       <p className="mt-2 text-sm text-[var(--text-muted)]">
-        Real skills pulled from real opportunities on Beacon. Click one to see how many opportunities it
-        unlocks, plus AI-suggested ways to learn it.
+        Real skills pulled from real opportunities on Beacon. Click one to see which careers it unlocks,
+        how many real opportunities require it, and AI-suggested ways to learn it.
       </p>
 
       {learningPriorities.length > 0 && (
@@ -148,8 +148,9 @@ export default function Skills({ user }: { user: User }) {
             ) : resources?.error ? (
               <p className="mt-3 text-sm text-red-600">{resources.error}</p>
             ) : resources ? (
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {[
+                  ["🧭 Careers unlocked", resources.careers],
                   ["📚 Ways to learn this", resources.resources],
                   ["🎓 Certifications", resources.certifications],
                   ["🛠️ Project ideas", resources.projects],
