@@ -118,9 +118,9 @@ export default function StartupHub({ user }: { user: User }) {
 
       {plan ? (
         <div className="mt-5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="font-serif text-lg font-semibold text-[var(--heading)]">Founder Mode: {plan.idea_title}</div>
-            <button onClick={startOver} className="cursor-pointer rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)]">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0 font-serif text-lg font-semibold break-words text-[var(--heading)]">Founder Mode: {plan.idea_title}</div>
+            <button onClick={startOver} className="shrink-0 cursor-pointer rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--text-muted)] transition-colors duration-200 hover:border-[var(--accent)]">
               Start a different idea
             </button>
           </div>

@@ -86,7 +86,7 @@ export default function HackathonCopilot() {
               <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] uppercase">👥 Team plan</div>
               <div className="mt-2 flex flex-col gap-1.5">
                 {kit.team_plan.map((t) => (
-                  <div key={t.role} className="flex items-center justify-between rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm backdrop-blur-md">
+                  <div key={t.role} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-sm backdrop-blur-md">
                     <span className="font-medium text-[var(--text)]">{t.role}</span>
                     <span className="text-[var(--text-muted)]">{t.responsibility}</span>
                   </div>

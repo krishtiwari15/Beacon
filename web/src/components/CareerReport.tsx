@@ -80,7 +80,7 @@ export default function CareerReport({ user }: { user: User }) {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-6 py-8 print:max-w-full print:px-0">
-      <div className="flex items-center justify-between print:hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
           Beacon Career Report
         </div>
@@ -92,7 +92,7 @@ export default function CareerReport({ user }: { user: User }) {
         </button>
       </div>
 
-      <div className="mt-5 rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-8 shadow-lg print:rounded-none print:border-none print:p-0 print:shadow-none">
+      <div className="mt-5 rounded-[24px] border border-[var(--border)] bg-[var(--surface-solid)] p-5 shadow-lg sm:p-8 print:rounded-none print:border-none print:p-0 print:shadow-none">
         <div className="text-xs font-semibold tracking-widest text-[var(--text-muted)] uppercase">Beacon Career Report</div>
         <h1 className="mt-1 font-serif text-3xl font-semibold text-[var(--heading)]">{name}</h1>
         {profile?.education && <p className="mt-1 text-sm text-[var(--text-muted)]">{profile.education}</p>}

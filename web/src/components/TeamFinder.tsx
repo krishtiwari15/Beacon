@@ -171,7 +171,7 @@ export default function TeamFinder({ user }: { user: User }) {
             return (
               <div key={r.id} className="rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-5 backdrop-blur-md">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-serif text-lg font-semibold text-[var(--heading)]">{r.title}</span>
+                  <span className="min-w-0 font-serif text-lg font-semibold break-words text-[var(--heading)]">{r.title}</span>
                   <span className="shrink-0 text-xs text-[var(--text-muted)]">{PURPOSE_LABELS[r.purpose] ?? r.purpose}</span>
                 </div>
                 {r.description && <p className="mt-2 text-sm text-[var(--text)]">{r.description}</p>}

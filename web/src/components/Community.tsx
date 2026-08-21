@@ -242,8 +242,8 @@ export default function Community({ user }: { user: User }) {
             visiblePosts.map((p) => (
               <div key={p.id} className={`rounded-[16px] border bg-[var(--surface)] p-5 backdrop-blur-md ${p.hidden ? "border-red-400/40" : "border-[var(--border)]"}`}>
                 {p.hidden && <p className="mb-2 text-xs font-medium text-red-600">⚠ This post is hidden pending review (multiple reports) — only visible to you.</p>}
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-serif text-base font-semibold text-[var(--heading)]">{p.title}</span>
+                <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+                  <span className="min-w-0 font-serif text-base font-semibold break-words text-[var(--heading)]">{p.title}</span>
                   <span className="shrink-0 text-xs text-[var(--text-muted)]">{authorNames[p.user_id] ?? "Beacon Student"}</span>
                 </div>
                 <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--text)]">{p.body}</p>
