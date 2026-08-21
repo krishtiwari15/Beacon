@@ -17,6 +17,14 @@ export default function AuthForm() {
   const [info, setInfo] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Forgot-password is a manually-typed 6-digit code, not a clickable link —
+  // corporate/email-provider security scanners auto-click links and burn the
+  // one-time token before the real user ever sees it (very common issue),
+  // which is why reset links were appearing to "expire within a minute".
+  const [codeSent, setCodeSent] = useState(false);
+  const [code, setCode] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+
   async function submit() {
     setError(null);
     setInfo(null);
@@ -24,11 +32,9 @@ export default function AuthForm() {
     const supabase = createClient();
     try {
       if (tab === "forgot") {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
-        });
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
         if (error) setError(error.message);
-        else setInfo("Check your email for a password reset link.");
+        else setCodeSent(true);
       } else if (tab === "login") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) setError(error.message);
@@ -49,22 +55,100 @@ export default function AuthForm() {
     }
   }
 
+  async function submitCode(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (newPassword.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+    setBusy(true);
+    const supabase = createClient();
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email,
+        token: code.trim(),
+        type: "recovery",
+      });
+      if (verifyError) {
+        setError(verifyError.message);
+        return;
+      }
+      const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+      if (updateError) {
+        setError(updateError.message);
+        return;
+      }
+      setInfo("✓ Password updated. You're now logged in.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function backToLogin() {
+    setTab("login");
+    setCodeSent(false);
+    setCode("");
+    setNewPassword("");
+    setError(null);
+    setInfo(null);
+  }
+
   if (tab === "forgot") {
+    if (codeSent) {
+      return (
+        <div>
+          <button onClick={backToLogin} className="cursor-pointer text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
+            ← Back to log in
+          </button>
+
+          <p className="mt-3 text-sm text-[var(--text-muted)]">
+            We sent a 6-digit code to <b>{email}</b>. Enter it below along with your new password. (Ignore
+            any reset link in that email — the code is what to use.)
+          </p>
+
+          <form className="mt-4 flex flex-col gap-3" onSubmit={submitCode}>
+            <input
+              type="text"
+              inputMode="numeric"
+              required
+              placeholder="6-digit code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              className={inputClass}
+            />
+            <input
+              type="password"
+              required
+              placeholder="New password (min 6 characters)"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              className={inputClass}
+            />
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            {info && <p className="text-sm text-emerald-700">{info}</p>}
+
+            <button
+              type="submit"
+              disabled={busy}
+              className="mt-1 h-[46px] cursor-pointer rounded-[12px] bg-[var(--accent)] text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {busy ? "Updating…" : "Reset password"}
+            </button>
+          </form>
+        </div>
+      );
+    }
+
     return (
       <div>
-        <button
-          onClick={() => {
-            setTab("login");
-            setError(null);
-            setInfo(null);
-          }}
-          className="cursor-pointer text-sm text-[var(--text-muted)] hover:text-[var(--text)]"
-        >
+        <button onClick={backToLogin} className="cursor-pointer text-sm text-[var(--text-muted)] hover:text-[var(--text)]">
           ← Back to log in
         </button>
 
         <p className="mt-3 text-sm text-[var(--text-muted)]">
-          Enter your email and we&apos;ll send you a link to reset your password.
+          Enter your email and we&apos;ll send you a 6-digit code to reset your password.
         </p>
 
         <form
@@ -91,7 +175,7 @@ export default function AuthForm() {
             disabled={busy}
             className="mt-1 h-[46px] cursor-pointer rounded-[12px] bg-[var(--accent)] text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)] disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {busy ? "Sending…" : "Send reset link"}
+            {busy ? "Sending…" : "Send reset code"}
           </button>
         </form>
       </div>
