@@ -77,23 +77,9 @@ body {
   will-change: opacity;
 }
 
-/* Dashboard ambient background: leaf-sprig texture + two soft color blobs,
-   composed as a single background on the container itself so it always
-   paints (avoids fixed/-z-index stacking ambiguity with sibling surfaces). */
+/* Dashboard background: smooth cream-to-emerald gradient wash, no pattern/texture. */
 .dashboard-bg {
-  background-color: var(--bg);
-  background-repeat: repeat, no-repeat, no-repeat;
-  background-size:
-    170px 170px,
-    75% 75%,
-    80% 80%;
-  background-position:
-    0 0,
-    -15% -15%,
-    115% 115%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170' viewBox='0 0 170 170'%3E%3Cg fill='none' stroke='%230f6b4f' stroke-width='2' stroke-opacity='0.34'%3E%3Cpath d='M20 28c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M35 28c6 2 10 8 10 14'/%3E%3Cpath d='M108 60c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M123 60c6 2 10 8 10 14'/%3E%3Cpath d='M54 112c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M69 112c6 2 10 8 10 14'/%3E%3Cpath d='M134 138c8-14 24-14 30 0-8 10-22 10-30 0z'/%3E%3Cpath d='M149 138c6 2 10 8 10 14'/%3E%3C/g%3E%3C/svg%3E"),
-    radial-gradient(circle, color-mix(in srgb, var(--accent-soft) 55%, transparent) 0%, transparent 70%),
-    radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent) 0%, transparent 70%);
+  background: linear-gradient(160deg, #faf9f6 0%, #eef3ee 42%, #dde8e0 72%, #c7dbcd 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
