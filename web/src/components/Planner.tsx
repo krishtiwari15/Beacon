@@ -47,20 +47,20 @@ export default function Planner() {
     <div className="mx-auto w-full max-w-5xl px-6 py-8">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map(([num, label]) => (
-          <div key={label} className="rounded border border-t-2 border-[#262626] border-t-[#f5c518] bg-[#141414] p-4 text-center transition-shadow duration-200 hover:shadow-[0_0_16px_rgba(245,197,24,0.15)]">
-            <div className="glow-text font-display text-2xl font-black text-[#f5c518]">{num}</div>
-            <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-zinc-400">{label}</div>
+          <div key={label} className="rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] p-4 text-center backdrop-blur-[20px] transition-shadow duration-200 hover:shadow-[0_0_16px_rgba(255,255,255,0.06)]">
+            <div className="text-2xl font-[450] text-white">{num}</div>
+            <div className="mt-1 text-[11px] tracking-wider text-white/50 uppercase">{label}</div>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 glow-text border-l-2 border-[#f5c518] pl-3 font-mono text-sm font-bold uppercase tracking-widest text-[#f5c518]">
+      <div className="mt-6 border-l-2 border-white pl-3 text-sm font-[450] tracking-widest text-white uppercase">
         Upcoming deadlines
       </div>
 
       <div className="mt-4 flex flex-col gap-2">
         {openSorted.length === 0 ? (
-          <div className="rounded border border-[#262626] bg-[#141414] p-8 text-center text-sm text-zinc-400">
+          <div className="rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] p-8 text-center text-sm text-white/50 backdrop-blur-[20px]">
             No upcoming deadlines found.
           </div>
         ) : (
@@ -68,15 +68,15 @@ export default function Planner() {
             const [bar, cls] = d <= 7 ? ["#ff4d4d", "text-red-400"] : d <= 30 ? ["#f5c518", "text-amber-400"] : ["#34c98a", "text-emerald-400"];
             const when = d === 1 ? "1 DAY" : `${d} DAYS`;
             return (
-              <div key={o.id} className="flex items-center gap-4 rounded border border-[#262626] bg-[#141414] px-4 py-3">
+              <div key={o.id} className="flex items-center gap-4 rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] px-4 py-3 backdrop-blur-[20px]">
                 <div className="h-10 w-1.5 rounded" style={{ background: bar }} />
                 <div className="flex-1">
-                  <div className="font-semibold text-white">{o.title}</div>
-                  <div className="font-mono text-xs text-zinc-500">
+                  <div className="font-[450] text-white">{o.title}</div>
+                  <div className="text-xs text-white/40">
                     {o.organization} · {o.deadline}
                   </div>
                 </div>
-                <div className={`text-right font-mono text-sm font-bold ${cls}`}>
+                <div className={`text-right text-sm font-[450] ${cls}`}>
                   {when}
                   <br />
                   LEFT

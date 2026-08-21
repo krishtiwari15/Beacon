@@ -107,14 +107,14 @@ export default function Discover({ user }: { user: User }) {
         placeholder="Search title, company, skill, keyword…"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-full rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518] focus:ring-2 focus:ring-[#f5c518]/30"
+        className="w-full rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-colors duration-200 focus:border-white/40 focus:ring-2 focus:ring-white/20"
       />
 
       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="cursor-pointer rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518]"
+          className="cursor-pointer rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-colors duration-200 focus:border-white/40"
         >
           <option value="">All types</option>
           {types.map((t) => (
@@ -126,7 +126,7 @@ export default function Discover({ user }: { user: User }) {
         <select
           value={modeFilter}
           onChange={(e) => setModeFilter(e.target.value)}
-          className="cursor-pointer rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518]"
+          className="cursor-pointer rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-colors duration-200 focus:border-white/40"
         >
           <option value="">Any work mode</option>
           {modes.map((m) => (
@@ -138,7 +138,7 @@ export default function Discover({ user }: { user: User }) {
         <select
           value={difficultyFilter}
           onChange={(e) => setDifficultyFilter(e.target.value)}
-          className="cursor-pointer rounded-md border border-[#2a2a2a] bg-[#141414] px-3 py-2 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518]"
+          className="cursor-pointer rounded-md border border-white/15 bg-white/5 px-3 py-2 text-sm text-white outline-none transition-colors duration-200 focus:border-white/40"
         >
           <option value="">Any level</option>
           <option value="Beginner">Beginner</option>
@@ -147,14 +147,14 @@ export default function Discover({ user }: { user: User }) {
         </select>
       </div>
 
-      <div className="mt-5 glow-text border-l-2 border-[#f5c518] pl-3 font-mono text-sm font-bold uppercase tracking-widest text-[#f5c518]">
-        {filtered.length} {filtered.length === 1 ? "opportunity" : "opportunities"} in range
+      <div className="mt-5 border-l-2 border-white pl-3 text-sm font-[450] tracking-widest text-white uppercase">
+        {filtered.length} {filtered.length === 1 ? "opportunity" : "opportunities"} found
       </div>
 
       <div className="mt-4 flex flex-col gap-4">
         {filtered.length === 0 ? (
-          <div className="rounded border border-[#262626] bg-[#141414] p-12 text-center text-[#f5c518]">
-            🛰️ No signals detected
+          <div className="rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] p-12 text-center text-white/60 backdrop-blur-[20px]">
+            No opportunities found
           </div>
         ) : (
           filtered.map((o) => (

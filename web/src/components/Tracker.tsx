@@ -59,8 +59,8 @@ export default function Tracker({ user }: { user: User }) {
   if (rows.length === 0) {
     return (
       <div className="mx-auto w-full max-w-5xl px-6 py-8">
-        <div className="rounded border border-[#262626] bg-[#141414] p-12 text-center">
-          <div className="text-lg font-bold text-[#f5c518]">📋 No applications yet</div>
+        <div className="rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] p-12 text-center backdrop-blur-[20px]">
+          <div className="text-lg font-[450] text-white">No applications yet</div>
           <div className="mt-1 text-sm text-zinc-400">
             Go to Discover and save some opportunities to start tracking.
           </div>
@@ -86,14 +86,14 @@ export default function Tracker({ user }: { user: User }) {
     <div className="mx-auto w-full max-w-5xl px-6 py-8">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map(([num, label]) => (
-          <div key={label} className="rounded border border-t-2 border-[#262626] border-t-[#f5c518] bg-[#141414] p-4 text-center transition-shadow duration-200 hover:shadow-[0_0_16px_rgba(245,197,24,0.15)]">
-            <div className="glow-text font-display text-2xl font-black text-[#f5c518]">{num}</div>
-            <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-zinc-400">{label}</div>
+          <div key={label} className="rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] p-4 text-center backdrop-blur-[20px] transition-shadow duration-200 hover:shadow-[0_0_16px_rgba(255,255,255,0.06)]">
+            <div className="text-2xl font-[450] text-white">{num}</div>
+            <div className="mt-1 text-[11px] tracking-wider text-white/50 uppercase">{label}</div>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 glow-text border-l-2 border-[#f5c518] pl-3 font-mono text-sm font-bold uppercase tracking-widest text-[#f5c518]">
+      <div className="mt-6 border-l-2 border-white pl-3 text-sm font-[450] tracking-widest text-white uppercase">
         Your pipeline
       </div>
 
@@ -103,7 +103,7 @@ export default function Tracker({ user }: { user: User }) {
             <select
               value={r.status}
               onChange={(e) => updateStatus(r.id, e.target.value as SavedStatus)}
-              className="cursor-pointer rounded-md border border-[#2a2a2a] bg-[#141414] px-2 py-1.5 text-sm text-zinc-100 outline-none transition-colors duration-200 focus:border-[#f5c518]"
+              className="cursor-pointer rounded-md border border-white/15 bg-white/5 px-2 py-1.5 text-sm text-white outline-none transition-colors duration-200 focus:border-white/40"
             >
               {STATUS_OPTIONS.map((s) => (
                 <option key={s} value={s}>

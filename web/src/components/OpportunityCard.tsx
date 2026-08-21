@@ -19,14 +19,14 @@ export default function OpportunityCard({
   removeMode?: boolean;
   children?: React.ReactNode;
 }) {
-  const accent = TYPE_COLORS[opportunity.type ?? ""] ?? "#f5c518";
+  const accent = TYPE_COLORS[opportunity.type ?? ""] ?? "#e9e9e9";
   const diffColor = opportunity.difficulty ? DIFF_COLORS[opportunity.difficulty] ?? "#999" : null;
   const deadline = deadlineLabel(opportunity.deadline);
   const stipend = opportunity.stipend || "Not specified";
   const unpaid = /unpaid|volunteer|not specified|free/i.test(stipend);
 
   return (
-    <div className="rounded border border-[#262626] bg-[#141414] p-5 transition-all duration-200 hover:border-[#f5c518]/40 hover:shadow-[0_0_20px_rgba(245,197,24,0.1)]">
+    <div className="rounded-[16px] border border-white/[0.08] bg-[rgba(17,16,15,0.35)] p-5 backdrop-blur-[20px] transition-all duration-200 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.06)]">
       <div className="flex items-center gap-3">
         {opportunity.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
@@ -102,7 +102,7 @@ export default function OpportunityCard({
             href={opportunity.source_url}
             target="_blank"
             rel="noreferrer"
-            className="cursor-pointer rounded-md border border-zinc-600 px-3 py-1.5 text-sm text-zinc-200 transition-colors duration-200 hover:border-[#f5c518] hover:text-[#f5c518]"
+            className="cursor-pointer rounded-md border border-zinc-600 px-3 py-1.5 text-sm text-zinc-200 transition-colors duration-200 hover:border-white/60 hover:text-white"
           >
             Apply ↗
           </a>
@@ -114,7 +114,7 @@ export default function OpportunityCard({
               ? "border border-red-600/50 text-red-400 hover:bg-red-500/10"
               : saved
                 ? "border border-emerald-600/50 bg-emerald-500/10 text-emerald-400"
-                : "border border-zinc-600 text-zinc-200 hover:border-[#f5c518] hover:text-[#f5c518]"
+                : "border border-zinc-600 text-zinc-200 hover:border-white/60 hover:text-white"
           }`}
         >
           {removeMode ? "🗑 Remove" : saved ? "✓ Saved" : "＋ Save"}

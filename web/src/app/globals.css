@@ -1,53 +1,113 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-rajdhani), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", monospace;
-  --font-display: var(--font-orbitron), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
 }
 
 :root {
-  --beacon-bg: #0a0a0a;
-  --beacon-panel: #141414;
-  --beacon-border: #262626;
-  --beacon-amber: #f5c518;
-  --beacon-text: #e6e6e6;
-  --beacon-muted: #8a8a8a;
+  --beacon-bg: #080a19;
+  --beacon-panel: rgba(17, 16, 15, 0.35);
+  --beacon-panel-solid: #0d0e1a;
+  --beacon-border: rgba(255, 255, 255, 0.08);
+  --beacon-accent: #e9e9e9;
+  --beacon-accent-text: #0a0707;
+  --beacon-text: #ffffff;
+  --beacon-muted: rgba(255, 255, 255, 0.7);
 }
 
 body {
-  background-color: var(--beacon-bg);
-  background-image:
-    linear-gradient(rgba(245, 197, 24, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(245, 197, 24, 0.035) 1px, transparent 1px);
-  background-size: 44px 44px;
+  background: var(--beacon-bg);
   color: var(--beacon-text);
   font-family: var(--font-sans);
+  font-weight: 450;
 }
 
-.glow-text {
-  text-shadow: 0 0 14px rgba(245, 197, 24, 0.55);
+/* Entrance-animation system */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.glow-border {
-  box-shadow:
-    0 0 0 1px rgba(245, 197, 24, 0.4),
-    0 0 16px rgba(245, 197, 24, 0.25);
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.glow-pulse {
-  box-shadow: 0 0 10px rgba(245, 197, 24, 0.7);
-  animation: beacon-pulse 2s ease-in-out infinite;
+@keyframes fade-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-@keyframes beacon-pulse {
-  0%,
-  100% {
+@keyframes fade-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes bar-grow {
+  from {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleY(1);
     opacity: 1;
   }
-  50% {
-    opacity: 0.4;
-  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-fade-down {
+  animation: fade-down 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-fade-left {
+  animation: fade-left 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-fade-right {
+  animation: fade-right 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-fade-scale {
+  animation: fade-scale 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-bar-grow {
+  animation: bar-grow 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
