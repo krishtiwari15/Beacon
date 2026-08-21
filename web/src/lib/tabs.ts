@@ -54,3 +54,11 @@ export const TABS = [
 ] as const;
 
 export type TabId = (typeof TABS)[number]["id"];
+
+export const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
+  { label: null, ids: ["home"] },
+  { label: "Opportunities", ids: ["discover", "jobs", "map", "research", "planner", "tracker"] },
+  { label: "Career", ids: ["career", "simulation", "projects", "hackathon", "startup", "skills", "eligibility", "resume"] },
+  { label: "Connect", ids: ["mentors", "team", "community"] },
+  { label: "AI & You", ids: ["copilot", "report", "weekly", "profile"] },
+];

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { LogOut, Menu, X, HelpCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { TABS, type TabId } from "@/lib/tabs";
+import { TABS, NAV_GROUPS, type TabId } from "@/lib/tabs";
 import Hero from "@/components/Hero";
 import DashboardHome from "@/components/DashboardHome";
 import Discover from "@/components/Discover";
@@ -29,14 +29,6 @@ import CareerReport from "@/components/CareerReport";
 import WeeklyReview from "@/components/WeeklyReview";
 import DirectJobs from "@/components/DirectJobs";
 import FeatureTour from "@/components/FeatureTour";
-
-const NAV_GROUPS: { label: string | null; ids: TabId[] }[] = [
-  { label: null, ids: ["home"] },
-  { label: "Opportunities", ids: ["discover", "jobs", "map", "research", "planner", "tracker"] },
-  { label: "Career", ids: ["career", "simulation", "projects", "hackathon", "startup", "skills", "eligibility", "resume"] },
-  { label: "Connect", ids: ["mentors", "team", "community"] },
-  { label: "AI & You", ids: ["copilot", "report", "weekly", "profile"] },
-];
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);

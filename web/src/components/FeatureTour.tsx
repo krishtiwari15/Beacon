@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
-import { TABS, type TabId } from "@/lib/tabs";
+import { X, Sparkles, PartyPopper } from "lucide-react";
+import { TABS, NAV_GROUPS, type TabId } from "@/lib/tabs";
 
 const DESCRIPTIONS: Partial<Record<TabId, string>> = {
   discover: "Browse real, indexed opportunities with a Match score (how well it fits you), a Trust score (how verifiable the listing is), and a Quality score — all explained, never a black box.",
@@ -28,7 +28,25 @@ const DESCRIPTIONS: Partial<Record<TabId, string>> = {
   profile: "Your saved skills, education, projects, and preferences — the foundation nearly every AI feature on Beacon reads from.",
 };
 
-const STEPS = TABS.filter((t) => DESCRIPTIONS[t.id]);
+function sectionFor(id: TabId): string | null {
+  for (const group of NAV_GROUPS) {
+    if (group.label && group.ids.includes(id)) return group.label;
+  }
+  return null;
+}
+
+const FEATURE_STEPS = TABS.filter((t) => DESCRIPTIONS[t.id]).map((t) => ({
+  tab: t,
+  section: sectionFor(t.id),
+}));
+
+type Step = { kind: "welcome" } | { kind: "feature"; index: number } | { kind: "finish" };
+
+const STEPS: Step[] = [
+  { kind: "welcome" },
+  ...FEATURE_STEPS.map((_, i) => ({ kind: "feature" as const, index: i })),
+  { kind: "finish" },
+];
 
 export default function FeatureTour({
   open,
@@ -40,26 +58,53 @@ export default function FeatureTour({
   onNavigate: (id: TabId) => void;
 }) {
   const [step, setStep] = useState(0);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    if (open) setStep(0);
+    if (open) {
+      setStep(0);
+      requestAnimationFrame(() => setVisible(true));
+    } else {
+      setVisible(false);
+    }
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
   }, [open]);
 
+  const goNext = () => setStep((s) => Math.min(s + 1, STEPS.length - 1));
+  const goBack = () => setStep((s) => Math.max(s - 1, 0));
+
+  useEffect(() => {
+    if (!open) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "ArrowRight" || e.key === "Enter") goNext();
+      else if (e.key === "ArrowLeft") goBack();
+      else if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   if (!open) return null;
 
   const current = STEPS[step];
-  const Icon = current.icon;
+  const isFirst = step === 0;
   const isLast = step === STEPS.length - 1;
+  const featureIndex = current.kind === "feature" ? current.index : -1;
+  const feature = featureIndex >= 0 ? FEATURE_STEPS[featureIndex] : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-      <div onClick={onClose} className="absolute inset-0 bg-[var(--text)]/40 backdrop-blur-sm" />
+      <div onClick={onClose} className={`absolute inset-0 bg-[var(--text)]/40 backdrop-blur-sm transition-opacity duration-300 ${visible ? "opacity-100" : "opacity-0"}`} />
 
-      <div className="relative flex w-full max-w-md flex-col rounded-[24px] border border-white/60 bg-white/97 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+      <div
+        className={`relative flex w-full max-w-md flex-col rounded-[24px] border border-white/60 bg-white/97 p-6 shadow-2xl backdrop-blur-xl transition-all duration-300 sm:p-8 ${
+          visible ? "translate-y-0 scale-100 opacity-100" : "translate-y-3 scale-[0.97] opacity-0"
+        }`}
+      >
         <button
           onClick={onClose}
           aria-label="Skip tour"
@@ -68,37 +113,73 @@ export default function FeatureTour({
           <X className="h-4 w-4" />
         </button>
 
-        <div className="flex gap-1.5">
-          {STEPS.map((s, i) => (
-            <div
-              key={s.id}
-              className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i <= step ? "bg-[var(--accent)]" : "bg-black/10"}`}
-            />
-          ))}
-        </div>
-        <p className="mt-3 text-xs font-semibold tracking-widest text-[var(--text-muted)] uppercase">
-          Step {step + 1} of {STEPS.length}
-        </p>
+        {!isFirst && !isLast && (
+          <>
+            <div className="flex gap-1.5">
+              {FEATURE_STEPS.map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1 flex-1 rounded-full transition-colors duration-300 ${i <= featureIndex ? "bg-[var(--accent)]" : "bg-black/10"}`}
+                />
+              ))}
+            </div>
+            <p className="mt-3 text-xs font-semibold tracking-widest text-[var(--text-muted)] uppercase">
+              {feature?.section ? `${feature.section} · ` : ""}Step {featureIndex + 1} of {FEATURE_STEPS.length}
+            </p>
+          </>
+        )}
 
-        <div className="mt-4 flex items-start gap-3.5">
-          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">
-            <Icon className="h-5 w-5" strokeWidth={2} />
-          </span>
-          <div className="min-w-0">
-            <h2 className="font-serif text-xl font-semibold text-[var(--heading)]">{current.label}</h2>
-          </div>
-        </div>
-        <p className="mt-3 text-sm leading-relaxed text-[var(--text-muted)]">{DESCRIPTIONS[current.id]}</p>
+        <div key={step} className="mt-4 animate-[tourFadeIn_0.25s_ease]">
+          {isFirst && (
+            <div className="flex flex-col items-center py-2 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">
+                <Sparkles className="h-7 w-7" strokeWidth={2} />
+              </span>
+              <h2 className="mt-4 font-serif text-2xl font-semibold text-[var(--heading)]">Welcome to Beacon</h2>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
+                You&apos;ve got a lot of tools here — real opportunities, AI career guidance, employer job postings, a
+                whole community. Let&apos;s walk through what each one actually does, one at a time. Takes about a
+                minute.
+              </p>
+            </div>
+          )}
 
-        <button
-          onClick={() => {
-            onNavigate(current.id);
-            onClose();
-          }}
-          className="mt-4 cursor-pointer self-start text-sm font-medium text-[var(--accent)] hover:underline"
-        >
-          Try it now →
-        </button>
+          {feature && (
+            <>
+              <div className="flex items-start gap-3.5">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">
+                  <feature.tab.icon className="h-5 w-5" strokeWidth={2} />
+                </span>
+                <div className="min-w-0">
+                  <h2 className="font-serif text-xl font-semibold text-[var(--heading)]">{feature.tab.label}</h2>
+                </div>
+              </div>
+              <p className="mt-3 text-sm leading-relaxed text-[var(--text-muted)]">{DESCRIPTIONS[feature.tab.id]}</p>
+              <button
+                onClick={() => {
+                  onNavigate(feature.tab.id);
+                  onClose();
+                }}
+                className="mt-4 cursor-pointer text-sm font-medium text-[var(--accent)] hover:underline"
+              >
+                Try it now →
+              </button>
+            </>
+          )}
+
+          {isLast && (
+            <div className="flex flex-col items-center py-2 text-center">
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--accent)]/10 text-[var(--accent)]">
+                <PartyPopper className="h-7 w-7" strokeWidth={2} />
+              </span>
+              <h2 className="mt-4 font-serif text-2xl font-semibold text-[var(--heading)]">You&apos;re all set</h2>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
+                That&apos;s everything. You can replay this tour anytime from &quot;Take the tour&quot; in the sidebar. A
+                good place to start: fill in your Profile, then head to Discover.
+              </p>
+            </div>
+          )}
+        </div>
 
         <div className="mt-6 flex items-center justify-between gap-3">
           <button
@@ -108,19 +189,19 @@ export default function FeatureTour({
             Skip tour
           </button>
           <div className="flex gap-2">
-            {step > 0 && (
+            {!isFirst && (
               <button
-                onClick={() => setStep((s) => s - 1)}
+                onClick={goBack}
                 className="cursor-pointer rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text)] transition-colors duration-200 hover:border-[var(--accent)]"
               >
                 Back
               </button>
             )}
             <button
-              onClick={() => (isLast ? onClose() : setStep((s) => s + 1))}
+              onClick={() => (isLast ? onClose() : goNext())}
               className="cursor-pointer rounded-full bg-[var(--accent)] px-5 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-[var(--accent-hover)]"
             >
-              {isLast ? "Start exploring" : "Next"}
+              {isFirst ? "Let's go" : isLast ? "Start exploring" : "Next"}
             </button>
           </div>
         </div>
