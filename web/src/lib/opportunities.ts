@@ -35,6 +35,7 @@ export const TYPE_COLORS: Record<string, string> = {
   competition: "#e8b923",
   research: "#c9a227",
   remote_job: "#bfa030",
+  grant: "#b8860b",
 };
 
 export const DIFF_COLORS: Record<string, string> = {

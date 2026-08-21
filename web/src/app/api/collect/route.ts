@@ -12,6 +12,9 @@ export const maxDuration = 60;
 const REMOTIVE_URL = "https://remotive.com/api/remote-jobs?category=software-dev&limit=20";
 const HIMALAYAS_URL = "https://himalayas.app/jobs/api?limit=20";
 const ARBEITNOW_URL = "https://www.arbeitnow.com/api/job-board-api";
+// Official, free, no-auth-required U.S. federal grants search API.
+// https://grants.gov/api/api-guide
+const GRANTS_GOV_URL = "https://api.grants.gov/v1/api/search2";
 
 type NewOpportunity = {
   title: string;
@@ -20,7 +23,7 @@ type NewOpportunity = {
   organization: string;
   location: string;
   eligibility: string;
-  deadline: null;
+  deadline: string | null;
   source_url: string;
   tags: string[];
   stipend: string;
@@ -115,15 +118,58 @@ async function fetchArbeitnow(): Promise<NewOpportunity[]> {
   }
 }
 
+function parseGrantsGovDate(mmddyyyy: string): string | null {
+  const m = mmddyyyy.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return null;
+  const [, mm, dd, yyyy] = m;
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+async function fetchGrantsGov(): Promise<NewOpportunity[]> {
+  try {
+    const res = await fetch(GRANTS_GOV_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ keyword: "student", oppStatuses: "posted", rows: 25 }),
+      signal: AbortSignal.timeout(20_000),
+    });
+    if (!res.ok) return [];
+    const json = await res.json();
+    const hits = (json?.data?.oppHits ?? []) as Record<string, unknown>[];
+    return hits
+      .filter((h) => h.oppStatus === "posted" && h.id && h.title)
+      .map((h) => ({
+        title: h.title as string,
+        type: "grant",
+        category: "Grants & Research Funding",
+        organization: (h.agency as string) || "U.S. Government",
+        location: "United States (federal)",
+        eligibility: "See official listing on Grants.gov for eligibility criteria.",
+        deadline: parseGrantsGovDate((h.closeDate as string) || ""),
+        source_url: `https://www.grants.gov/search-results-detail/${h.id}`,
+        tags: [],
+        stipend: "Varies by award",
+        difficulty: "Advanced",
+        work_mode: "Varies",
+        logo_url: "",
+      }));
+  } catch {
+    return [];
+  }
+}
+
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const all = [...(await fetchRemotive()), ...(await fetchHimalayas()), ...(await fetchArbeitnow())].filter(
-    (o) => o.source_url,
-  );
+  const all = [
+    ...(await fetchRemotive()),
+    ...(await fetchHimalayas()),
+    ...(await fetchArbeitnow()),
+    ...(await fetchGrantsGov()),
+  ].filter((o) => o.source_url);
 
   const supabase = createAdminClient();
   const { data: existing } = await supabase.from("opportunities").select("source_url");
@@ -143,10 +189,27 @@ export async function GET(req: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Remove opportunities whose deadline has passed — but never one a
+  // student has saved/tracked, so their application history in the
+  // Tracker never silently disappears out from under them.
+  const today = new Date().toISOString().slice(0, 10);
+  const { data: savedRows } = await supabase.from("saved_opportunities").select("opportunity_id");
+  const protectedIds = Array.from(new Set((savedRows ?? []).map((r) => r.opportunity_id as number)));
+
+  let deleteQuery = supabase.from("opportunities").delete({ count: "exact" }).lt("deadline", today);
+  if (protectedIds.length > 0) {
+    deleteQuery = deleteQuery.not("id", "in", `(${protectedIds.join(",")})`);
+  }
+  const { count: removedCount, error: deleteError } = await deleteQuery;
+  if (deleteError) {
+    console.error("[collect] Failed to clean up expired opportunities:", deleteError.message);
+  }
+
   return NextResponse.json({
     message: "Collection run complete",
     fetched: all.length,
     added: deduped.length,
     skipped: all.length - deduped.length,
+    expiredRemoved: removedCount ?? 0,
   });
 }
