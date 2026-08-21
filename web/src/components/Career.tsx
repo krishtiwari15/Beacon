@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
+import { track } from "@/lib/track";
 import { Roadmap, roadmapProgress } from "@/lib/roadmap";
 import type { CareerRecommendation } from "@/lib/services/careerRecommendation";
 import type { QuizAnswers } from "@/lib/services/careerRecommendation";
@@ -73,6 +74,7 @@ export default function Career({ user }: { user: User }) {
   async function buildRoadmap(careerTitle: string) {
     setBuilding(careerTitle);
     setError(null);
+    track("career_view", careerTitle);
     try {
       const res = await fetch("/api/career-roadmap", {
         method: "POST",

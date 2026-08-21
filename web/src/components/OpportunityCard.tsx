@@ -5,6 +5,7 @@ import {
   deadlineLabel,
   typeLabel,
 } from "@/lib/opportunities";
+import { track } from "@/lib/track";
 
 function matchColor(score: number): string {
   if (score >= 75) return "#2f8a52";
@@ -122,6 +123,7 @@ export default function OpportunityCard({
             href={opportunity.source_url}
             target="_blank"
             rel="noreferrer"
+            onClick={() => track("apply_click", opportunity.type ?? "unknown")}
             className="cursor-pointer rounded-full border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text)] transition-colors duration-200 hover:border-[var(--accent)]"
           >
             Apply ↗

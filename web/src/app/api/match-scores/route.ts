@@ -27,6 +27,30 @@ export async function GET() {
   return NextResponse.json({ scores: data ?? [] });
 }
 
+const LABELS: Record<string, string> = {
+  apply_click: "clicked Apply on opportunity type",
+  skill_view: "looked up the skill",
+  career_view: "explored the career path",
+};
+
+function summarizeInteractions(rows: { type: string; target: string }[]): string {
+  if (rows.length === 0) return "";
+  const counts = new Map<string, number>();
+  for (const r of rows) {
+    const key = `${r.type}::${r.target}`;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const top = Array.from(counts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([key, count]) => {
+      const [type, target] = key.split("::");
+      const label = LABELS[type] ?? type;
+      return `${label} "${target}" (${count}x)`;
+    });
+  return top.join("; ");
+}
+
 // POST (re)computes match scores via one AI call and upserts them —
 // triggered explicitly by the user ("Refresh matches"), never automatically
 // on every render.
@@ -37,16 +61,25 @@ export async function POST() {
   } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  const [{ data: profile }, { data: opportunities, error: oppsError }] = await Promise.all([
+  const [{ data: profile }, { data: opportunities, error: oppsError }, { data: interactions }] = await Promise.all([
     supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("opportunities").select("*").order("deadline", { ascending: true, nullsFirst: false }),
+    supabase
+      .from("user_interactions")
+      .select("type, target")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(100),
   ]);
 
   if (oppsError) return NextResponse.json({ error: oppsError.message }, { status: 500 });
 
+  const interactionSummary = summarizeInteractions((interactions ?? []) as { type: string; target: string }[]);
+
   const { scores, error } = await computeMatchScores(
     profile as Profile | null,
     (opportunities ?? []) as Opportunity[],
+    interactionSummary,
   );
   if (error) return NextResponse.json({ error }, { status: 502 });
 

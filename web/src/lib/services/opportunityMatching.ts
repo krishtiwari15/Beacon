@@ -33,6 +33,7 @@ function profileToText(profile: Partial<Profile> | null): string {
 async function scoreBatch(
   profile: Partial<Profile> | null,
   batch: Opportunity[],
+  interactionSummary: string,
 ): Promise<{ scores: MatchScore[]; error?: string }> {
   const compact = batch.map((o) => ({
     id: o.id,
@@ -48,6 +49,8 @@ async function scoreBatch(
 
 STUDENT PROFILE:
 ${profileToText(profile)}
+
+OBSERVED INTEREST (from real product usage, weight this alongside the profile — recent behavior can signal shifting interests): ${interactionSummary || "(no interaction history yet)"}
 
 OPPORTUNITIES (JSON list):
 ${JSON.stringify(compact)}
@@ -78,6 +81,7 @@ Include every opportunity id from the list exactly once.`;
 export async function computeMatchScores(
   profile: Partial<Profile> | null,
   opportunities: Opportunity[],
+  interactionSummary = "",
 ): Promise<{ scores: MatchScore[]; error?: string }> {
   if (opportunities.length === 0) return { scores: [] };
 
@@ -90,7 +94,7 @@ export async function computeMatchScores(
   let firstError: string | undefined;
 
   for (const batch of batches) {
-    const { scores, error } = await scoreBatch(profile, batch);
+    const { scores, error } = await scoreBatch(profile, batch, interactionSummary);
     allScores.push(...scores);
     if (error && !firstError) firstError = error;
   }

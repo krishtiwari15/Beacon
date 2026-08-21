@@ -21,12 +21,33 @@ const EMPTY = {
   country: "",
 };
 
+type InteractionRow = { type: string; target: string; created_at: string };
+
+const INTERACTION_LABELS: Record<string, string> = {
+  apply_click: "Clicked Apply on",
+  skill_view: "Looked up skill",
+  career_view: "Explored career",
+};
+
 export default function Profile({ user }: { user: User }) {
   const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [interactions, setInteractions] = useState<InteractionRow[]>([]);
+  const [clearing, setClearing] = useState(false);
+
+  function loadInteractions() {
+    const supabase = createClient();
+    supabase
+      .from("user_interactions")
+      .select("type, target, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(20)
+      .then(({ data }) => setInteractions((data as InteractionRow[]) ?? []));
+  }
 
   useEffect(() => {
     const supabase = createClient();
@@ -55,7 +76,17 @@ export default function Profile({ user }: { user: User }) {
         }
         setLoading(false);
       });
+    loadInteractions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
+
+  async function clearInteractions() {
+    setClearing(true);
+    const supabase = createClient();
+    await supabase.from("user_interactions").delete().eq("user_id", user.id);
+    setInteractions([]);
+    setClearing(false);
+  }
 
   function set<K extends keyof typeof EMPTY>(key: K, value: string) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -142,6 +173,46 @@ export default function Profile({ user }: { user: User }) {
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       {saved && <p className="mt-4 text-sm text-emerald-700">✓ Profile saved.</p>}
+
+      <div className="mt-8">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
+            Your interaction signals
+          </div>
+          {interactions.length > 0 && (
+            <button
+              onClick={clearInteractions}
+              disabled={clearing}
+              className="cursor-pointer rounded-full border border-red-500/40 px-3 py-1.5 text-xs font-medium text-red-600 transition-colors duration-200 hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {clearing ? "Clearing…" : "Clear my interaction history"}
+            </button>
+          )}
+        </div>
+        <p className="mt-2 text-sm text-[var(--text-muted)]">
+          Beacon logs a few lightweight, non-sensitive actions (Apply clicks, skills you look up, careers
+          you explore) and uses them alongside your saved profile to improve match scores. Nothing here is
+          shared or used for anything else, and you can clear it anytime.
+        </p>
+        {interactions.length === 0 ? (
+          <div className="mt-3 rounded-[16px] border border-[var(--border)] bg-[var(--surface)] p-4 text-sm text-[var(--text-muted)] backdrop-blur-md">
+            Nothing logged yet — this fills in as you use Discover, Skill Graph, and Career Discovery.
+          </div>
+        ) : (
+          <div className="mt-3 flex flex-col gap-1.5">
+            {interactions.map((i, idx) => (
+              <div key={idx} className="flex items-center justify-between gap-3 rounded-[12px] border border-[var(--border)] bg-[var(--surface)] px-3 py-2 text-xs backdrop-blur-md">
+                <span className="text-[var(--text)]">
+                  {INTERACTION_LABELS[i.type] ?? i.type} <b>{i.target}</b>
+                </span>
+                <span className="shrink-0 text-[var(--text-muted)]">
+                  {new Date(i.created_at).toLocaleDateString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

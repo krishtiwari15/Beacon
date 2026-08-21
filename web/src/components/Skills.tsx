@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Opportunity } from "@/lib/opportunities";
+import { track } from "@/lib/track";
 import CardSkeleton from "@/components/CardSkeleton";
 
 type Resources = { resources?: string[]; certifications?: string[]; projects?: string[]; error?: string };
@@ -38,6 +39,7 @@ export default function Skills() {
 
   async function selectSkill(skill: string) {
     setSelected(skill);
+    track("skill_view", skill);
     if (resourceCache[skill] || fetchingResources) return;
     setFetchingResources(true);
     try {
