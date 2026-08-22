@@ -31,7 +31,7 @@ const INTERACTION_LABELS: Record<string, string> = {
   career_view: "Explored career",
 };
 
-export default function Profile({ user }: { user: User }) {
+export default function Profile({ user, onOpenTour }: { user: User; onOpenTour?: () => void }) {
   const [form, setForm] = useState(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -244,6 +244,21 @@ export default function Profile({ user }: { user: User }) {
           )}
         </div>
       </div>
+
+      {onOpenTour && (
+        <div className="mt-8">
+          <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">
+            Beacon Tutorial
+          </div>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">Walk through what each part of Beacon does, again.</p>
+          <button
+            onClick={onOpenTour}
+            className="mt-3 cursor-pointer rounded-full border border-[var(--border)] px-4 py-2 text-sm font-medium text-[var(--text)] transition-colors duration-200 hover:border-[var(--accent)]"
+          >
+            Restart Beacon Tutorial
+          </button>
+        </div>
+      )}
 
       <div className="mt-8">
         <div className="border-l-2 border-[var(--accent)] pl-3 text-sm font-semibold tracking-widest text-[var(--text)] uppercase">

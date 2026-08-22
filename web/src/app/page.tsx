@@ -29,6 +29,7 @@ import CareerReport from "@/components/CareerReport";
 import WeeklyReview from "@/components/WeeklyReview";
 import DirectJobs from "@/components/DirectJobs";
 import FeatureTour from "@/components/FeatureTour";
+import SmartOnboarding from "@/components/onboarding/SmartOnboarding";
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -36,6 +37,8 @@ export default function Home() {
   const [tab, setTab] = useState<TabId>("home");
   const [menuOpen, setMenuOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [onboardingResuming, setOnboardingResuming] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -52,19 +55,29 @@ export default function Home() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  // A brand-new account (no profile row saved yet) gets the feature tour
-  // automatically on first login, so nobody is dropped into an empty
-  // dashboard with 20 unexplained sidebar items.
+  // A brand-new account (no profile row at all) gets Smart Onboarding —
+  // resume upload -> AI profile autofill -> career paths -> matching
+  // opportunities -> then the feature tour. An account that started
+  // onboarding but didn't finish (interrupted mid-flow) resumes it instead
+  // of being dropped into it from scratch. Existing pre-onboarding accounts
+  // are backfilled to onboarding_status = 'completed' by the migration, so
+  // they're never shown any of this.
   useEffect(() => {
     if (!user) return;
     const supabase = createClient();
     supabase
       .from("profiles")
-      .select("user_id")
+      .select("onboarding_status")
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!data) setTourOpen(true);
+        if (!data) {
+          setOnboardingResuming(false);
+          setOnboardingOpen(true);
+        } else if (data.onboarding_status && data.onboarding_status !== "completed") {
+          setOnboardingResuming(true);
+          setOnboardingOpen(true);
+        }
       });
   }, [user]);
 
@@ -287,10 +300,22 @@ export default function Home() {
         {tab === "report" && <CareerReport user={user} />}
         {tab === "weekly" && <WeeklyReview user={user} />}
         {tab === "planner" && <Planner />}
-        {tab === "profile" && <Profile user={user} />}
+        {tab === "profile" && <Profile user={user} onOpenTour={() => setTourOpen(true)} />}
       </main>
 
       <FeatureTour open={tourOpen} onClose={() => setTourOpen(false)} onNavigate={setTab} />
+
+      {onboardingOpen && (
+        <SmartOnboarding
+          user={user}
+          resuming={onboardingResuming}
+          onExit={() => setOnboardingOpen(false)}
+          onComplete={(openTour) => {
+            setOnboardingOpen(false);
+            if (openTour) setTourOpen(true);
+          }}
+        />
+      )}
     </div>
   );
 }

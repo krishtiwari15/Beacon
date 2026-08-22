@@ -20,6 +20,8 @@ export type Profile = {
     funded?: boolean;
     remote?: boolean;
   } | null;
+  onboarding_status: "not_started" | "resume_uploaded" | "profile_generated" | "opportunities_shown" | "tutorial_completed" | "completed";
+  onboarding_completed_at: string | null;
   updated_at: string;
 };
 
